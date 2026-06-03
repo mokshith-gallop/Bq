@@ -1,0 +1,164 @@
+# BigQuery DDL Deployment Order
+# ==============================
+# Execute files in this order to satisfy all dependencies.
+# Tables are created before views. Within tables, dimensions before facts.
+# Views are ordered so that base-table dependencies are already deployed.
+#
+# Usage:
+#   while IFS= read -r line; do
+#     [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+#     envsubst < "$line" | bq query --use_legacy_sql=false
+#   done < deploy_order.txt
+
+# ─── 1. Raw Tables (19) ──────────────────────────────────────────────
+raw/tables/sales_retail.sql
+raw/tables/omniture_logs.sql
+raw/tables/returns_cdc.sql
+raw/tables/pos_transactions.sql
+raw/tables/inventory_movements.sql
+raw/tables/customer_signups.sql
+raw/tables/loyalty_events.sql
+raw/tables/product_catalog_feed.sql
+raw/tables/supplier_invoices.sql
+raw/tables/email_campaign_clicks.sql
+raw/tables/shipment_tracking.sql
+raw/tables/return_authorizations.sql
+raw/tables/fraud_signals.sql
+raw/tables/warehouse_picks.sql
+raw/tables/delivery_routes.sql
+raw/tables/driver_logs.sql
+raw/tables/customer_complaints.sql
+raw/tables/chat_transcripts.sql
+raw/tables/mobile_events.sql
+
+# ─── 2. Staging Tables (10) ──────────────────────────────────────────
+staging/tables/cleansed_orders.sql
+staging/tables/cleansed_customers.sql
+staging/tables/cleansed_products.sql
+staging/tables/dedup_clickstream.sql
+staging/tables/geocoded_addresses.sql
+staging/tables/parsed_loyalty_events.sql
+staging/tables/merged_returns_cdc.sql
+staging/tables/normalized_carrier_events.sql
+staging/tables/fraud_scored.sql
+staging/tables/warehouse_kpi_snapshot.sql
+
+# ─── 3. Retail Tables (58) ───────────────────────────────────────────
+
+# 3a. Dimensions (17 — includes SCD-2 history tables)
+retail/tables/dim_date.sql
+retail/tables/dim_customer.sql
+retail/tables/dim_product.sql
+retail/tables/dim_store.sql
+retail/tables/dim_supplier.sql
+retail/tables/dim_employee.sql
+retail/tables/dim_promotion.sql
+retail/tables/dim_warehouse.sql
+retail/tables/dim_currency.sql
+retail/tables/dim_geography.sql
+retail/tables/dim_color.sql
+retail/tables/dim_size.sql
+retail/tables/dim_brand.sql
+retail/tables/dim_category.sql
+retail/tables/dim_payment_method.sql
+retail/tables/dim_employee_history.sql
+retail/tables/dim_store_history.sql
+
+# 3b. Facts (17)
+retail/tables/fact_sales.sql
+retail/tables/fact_web_session.sql
+retail/tables/fact_inventory_movements.sql
+retail/tables/fact_inventory_snapshot.sql
+retail/tables/fact_returns.sql
+retail/tables/fact_payments.sql
+retail/tables/fact_shipments.sql
+retail/tables/fact_refunds.sql
+retail/tables/fact_app_clicks.sql
+retail/tables/fact_email_engagement.sql
+retail/tables/fact_chat_interactions.sql
+retail/tables/fact_warehouse_picks.sql
+retail/tables/fact_supplier_invoice_lines.sql
+retail/tables/fact_loyalty_events.sql
+retail/tables/fact_fraud_decisions.sql
+retail/tables/fact_promo_redemptions.sql
+retail/tables/fact_customer_complaints.sql
+
+# 3c. ACID tables → standard managed (5)
+retail/tables/returns_ledger.sql
+retail/tables/acid_customer_address_history.sql
+retail/tables/acid_supplier_terms_history.sql
+retail/tables/acid_loyalty_points_ledger.sql
+retail/tables/acid_inventory_adjustments_log.sql
+
+# 3d. Aggregate tables (8)
+retail/tables/agg_daily_sales_by_store.sql
+retail/tables/agg_daily_sales_by_product.sql
+retail/tables/agg_weekly_customer_ltv.sql
+retail/tables/agg_monthly_supplier_performance.sql
+retail/tables/agg_hourly_warehouse_kpi.sql
+retail/tables/agg_daily_carrier_otd.sql
+retail/tables/agg_marketing_attribution_cube.sql
+retail/tables/agg_returns_by_reason_monthly.sql
+
+# 3e. Bridge tables (5)
+retail/tables/bridge_product_attribute.sql
+retail/tables/bridge_product_supplier.sql
+retail/tables/bridge_customer_segment.sql
+retail/tables/bridge_promo_eligibility.sql
+retail/tables/bridge_employee_role.sql
+
+# 3f. Rollup tables (2)
+retail/tables/sales_cube.sql
+retail/tables/top_countries_daily.sql
+
+# 3g. Kudu snapshot tables (4)
+retail/tables/inventory_realtime_snapshot.sql
+retail/tables/session_state_snapshot.sql
+retail/tables/promo_eligibility_snapshot.sql
+retail/tables/realtime_price_snapshot.sql
+
+# ─── 4. Regional EU Tables (13) ──────────────────────────────────────
+regional_eu/tables/dim_currency_eu.sql
+regional_eu/tables/dim_product_eu_catalog.sql
+regional_eu/tables/dim_locale_eu.sql
+regional_eu/tables/dim_customer_snapshot.sql
+regional_eu/tables/dim_gdpr_consent.sql
+regional_eu/tables/fact_orders_eu.sql
+regional_eu/tables/fact_returns_eu.sql
+regional_eu/tables/fact_shipments_eu.sql
+regional_eu/tables/fact_mobile_app_events.sql
+regional_eu/tables/fact_eu_promotions.sql
+regional_eu/tables/events_eu.sql
+regional_eu/tables/staging_orders_eu.sql
+regional_eu/tables/staging_customers_eu_cdc.sql
+
+# ─── 5. Views (15) — dependency order ────────────────────────────────
+
+# 5a. Raw views (2) — depend on raw tables only
+raw/views/omniture.sql
+raw/views/v_fraud_signals_recent.sql
+
+# 5b. Staging views (1) — cross-dataset: depends on raw.return_authorizations
+staging/views/v_returns_pending.sql
+
+# 5c. Retail views — simple (5) — depend on retail tables only
+retail/views/vw_daily_sales_by_country.sql
+retail/views/vw_weekly_sales_with_running_totals.sql
+retail/views/vw_customer_lifetime_value.sql
+retail/views/vw_product_performance.sql
+retail/views/vw_monthly_cohort_retention.sql
+
+# 5d. Retail views — cross-dataset (1) — depends on raw.mobile_events
+retail/views/vw_session_to_order_attribution.sql
+
+# 5e. Retail views — special syntax (4)
+retail/views/vw_active_member_panel.sql
+retail/views/vw_sales_rollup_by_region.sql
+retail/views/vw_category_hierarchy_recursive.sql
+retail/views/vw_otd_by_carrier_30d.sql
+
+# 5f. Retail views — UDF-dependent (1) — MUST deploy after udfs.normalize_country
+retail/views/vw_panel_continuity_score.sql
+
+# 5g. Regional EU views (1) — depends on EU tables only
+regional_eu/views/v_eu_orders_with_consent.sql
