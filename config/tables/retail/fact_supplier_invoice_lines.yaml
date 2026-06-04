@@ -1,32 +1,39 @@
-# Manifest: retail.fact_supplier_invoice_lines
 source:
   database: retail
   table: fact_supplier_invoice_lines
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_supplier_invoice_lines/
-  partition_cols: [invoice_year, invoice_month]
-
+  partition_cols:
+  - invoice_year
+  - invoice_month
 target:
   project: acme-analytics
   dataset: retail
   table: fact_supplier_invoice_lines
-
 transforms:
   partition_key_conversion:
-    source_cols: [invoice_year, invoice_month]
+    source_cols:
+    - invoice_year
+    - invoice_month
     target_col: partition_month
     parse_fn: DATE
-    generated_column: true  # BQ DDL: partition_month DATE AS (DATE(invoice_year, invoice_month, 1))
+    generated_column: true
   map_to_json: []
   type_widening:
-    - { col: invoice_line_id, from: BIGINT, to: INT64 }
-    - { col: supplier_sk, from: BIGINT, to: INT64 }
-    - { col: quantity, from: INT, to: INT64 }
-
+  - col: invoice_line_id
+    from: BIGINT
+    to: INT64
+  - col: supplier_sk
+    from: BIGINT
+    to: INT64
+  - col: quantity
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [invoice_line_id, invoice_no]
-
+  null_check_cols:
+  - invoice_line_id
+  - invoice_no
 wave: wave_2_medium
 migration_tier: standard

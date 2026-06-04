@@ -1,26 +1,26 @@
-# Manifest: staging.cleansed_orders
 source:
   database: staging
   table: cleansed_orders
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/cleansed_orders/
-  partition_cols: [order_date]
-
+  partition_cols:
+  - order_date
 target:
   project: acme-analytics
   dataset: staging
   table: cleansed_orders
-
 transforms:
-  partition_key_conversion: null  # order_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: line_count, from: INT, to: INT64 }
-
+  - col: line_count
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [order_id, invoice_no]
-
+  null_check_cols:
+  - order_id
+  - invoice_no
 wave: wave_2_medium
 migration_tier: standard

@@ -1,35 +1,34 @@
-# Manifest: raw.sales_retail
 source:
   database: raw
   table: sales_retail
   cluster: acme-lake
   format: textfile_csv
   gcs_path: gs://acme-migration-staging-us/raw/sales/
-  partition_cols: [date_ts]
+  partition_cols:
+  - date_ts
   format_options:
-    delimiter: ","
+    delimiter: ','
     header: true
-    null_format: ""
-
+    null_format: ''
 target:
   project: acme-analytics
   dataset: raw
   table: sales_retail
-
 transforms:
   partition_key_conversion:
     source_col: date_ts
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening:
-    - { col: quantity, from: INT, to: INT64 }
-
+  - col: quantity
+    from: INT
+    to: INT64
 validation:
   watermark_col: date_ts
-  null_check_cols: [invoice_no]
-
+  null_check_cols:
+  - invoice_no
 wave: wave_3_large
 migration_tier: critical

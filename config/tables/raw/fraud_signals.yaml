@@ -1,32 +1,30 @@
-# Manifest: raw.fraud_signals
 source:
   database: raw
   table: fraud_signals
   cluster: acme-lake
   format: avro
   gcs_path: gs://acme-migration-staging-us/raw/fraud_signals/
-  partition_cols: [signal_date]
+  partition_cols:
+  - signal_date
   format_options:
     avro_schema_url: hdfs:///user/etl/schemas/fraud_signals-v5.avsc
-
 target:
   project: acme-analytics
   dataset: raw
   table: fraud_signals
-
 transforms:
   partition_key_conversion:
     source_col: signal_date
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: signal_date
-  null_check_cols: [customer_id, signal_type]
-
+  null_check_cols:
+  - customer_id
+  - signal_type
 wave: wave_1_small
 migration_tier: standard

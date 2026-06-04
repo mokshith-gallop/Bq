@@ -1,35 +1,42 @@
-# Manifest: staging.warehouse_kpi_snapshot
 source:
   database: staging
   table: warehouse_kpi_snapshot
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/warehouse_kpi_snapshot/
-  partition_cols: [date_ts]
-
+  partition_cols:
+  - date_ts
 target:
   project: acme-analytics
   dataset: staging
   table: warehouse_kpi_snapshot
-
 transforms:
   partition_key_conversion:
     source_col: date_ts
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening:
-    - { col: units_in, from: INT, to: INT64 }
-    - { col: units_picked, from: INT, to: INT64 }
-    - { col: units_shipped, from: INT, to: INT64 }
-    - { col: backlog_units, from: INT, to: INT64 }
-    - { col: avg_pick_ms, from: INT, to: INT64 }
-
+  - col: units_in
+    from: INT
+    to: INT64
+  - col: units_picked
+    from: INT
+    to: INT64
+  - col: units_shipped
+    from: INT
+    to: INT64
+  - col: backlog_units
+    from: INT
+    to: INT64
+  - col: avg_pick_ms
+    from: INT
+    to: INT64
 validation:
   watermark_col: date_ts
-  null_check_cols: [warehouse_id]
-
+  null_check_cols:
+  - warehouse_id
 wave: wave_2_medium
 migration_tier: standard

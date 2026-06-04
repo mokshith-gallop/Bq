@@ -1,33 +1,32 @@
-# Manifest: raw.product_catalog_feed
 source:
   database: raw
   table: product_catalog_feed
   cluster: acme-lake
   format: rcfile
   gcs_path: gs://acme-migration-staging-us/raw/product_catalog_feed/
-  partition_cols: [feed_date]
+  partition_cols:
+  - feed_date
   format_options:
     hive_serde: true
-
 target:
   project: acme-analytics
   dataset: raw
   table: product_catalog_feed
-
 transforms:
   partition_key_conversion:
     source_col: feed_date
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json:
-    - { source_col: metadata, target_col: metadata }
+  - source_col: metadata
+    target_col: metadata
   type_widening: []
-
 validation:
   watermark_col: feed_date
-  null_check_cols: [sku, supplier_id]
-
+  null_check_cols:
+  - sku
+  - supplier_id
 wave: wave_1_small
 migration_tier: standard

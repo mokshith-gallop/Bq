@@ -1,13 +1,14 @@
 # Manifest: retail.session_state_snapshot
-# Source: retail.kudu_session_state (Kudu table on acme-analytics cluster)
-# Kudu batch analytics snapshot — exported as Parquet to GCS
-# Epoch ms conversion: started_ts, last_event_ts BIGINT → TIMESTAMP
+# Source: retail.kudu_session_state (Kudu table, acme-analytics cluster)
+# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
+# Non-partitioned in BQ
 source:
   database: retail
   table: kudu_session_state
   cluster: acme-analytics
-  format: kudu_snapshot
+  format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_session_state/
+  partition_cols: []
 
 target:
   project: acme-analytics
@@ -19,10 +20,13 @@ transforms:
   map_to_json: []
   type_widening:
     - { col: cart_items, from: INT, to: INT64 }
-  kudu_epoch_cols: [started_ts, last_event_ts]
+  kudu_epoch_conversion:
+    - { col: started_ts, from_unit: millis }
+    - { col: last_event_ts, from_unit: millis }
 
 wave: wave_1_small
 
 validation:
   watermark_col: null
   null_check_cols: [session_id]
+migration_tier: standard

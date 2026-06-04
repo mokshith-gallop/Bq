@@ -1,27 +1,26 @@
-# Manifest: regional.fact_eu_promotions
-# Source: Hive Parquet managed table on acme-edge cluster
-# Partition: redemption_date DATE (native — no conversion)
 source:
   database: regional
   table: fact_eu_promotions
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/fact_eu_promotions/
-  partition_cols: [redemption_date]
-
+  partition_cols:
+  - redemption_date
 target:
   project: acme-analytics-eu
   dataset: regional_eu
   table: fact_eu_promotions
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: redemption_id, from: BIGINT, to: INT64 }
-
-wave: eu
-
+  - col: redemption_id
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [redemption_id, promo_code]
+  null_check_cols:
+  - redemption_id
+  - promo_code
+wave: eu
+migration_tier: standard

@@ -1,4 +1,3 @@
-# Manifest: retail.top_countries_daily
 source:
   database: retail
   table: top_countries_daily
@@ -6,22 +5,23 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/top_countries_daily/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: top_countries_daily
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: orders, from: BIGINT, to: INT64 }
-    - { col: rank, from: TINYINT, to: INT64 }
-
+  - col: orders
+    from: BIGINT
+    to: INT64
+  - col: rank
+    from: TINYINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [country]
-
+  null_check_cols:
+  - country
 wave: wave_1_small
 migration_tier: standard

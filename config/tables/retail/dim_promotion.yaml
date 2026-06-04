@@ -1,4 +1,3 @@
-# Manifest: retail.dim_promotion
 source:
   database: retail
   table: dim_promotion
@@ -6,22 +5,23 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_promotion/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: dim_promotion
-
 transforms:
   partition_key_conversion: null
   map_to_json:
-    - { source_col: eligibility, target_col: eligibility }
+  - source_col: eligibility
+    target_col: eligibility
   type_widening:
-    - { col: promo_sk, from: BIGINT, to: INT64 }
-
+  - col: promo_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [promo_sk, promo_id]
-
+  null_check_cols:
+  - promo_sk
+  - promo_id
 wave: wave_1_small
 migration_tier: standard

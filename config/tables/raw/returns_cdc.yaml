@@ -1,31 +1,33 @@
-# Manifest: raw.returns_cdc
 source:
   database: raw
   table: returns_cdc
   cluster: acme-lake
   format: textfile_csv
   gcs_path: gs://acme-migration-staging-us/raw/returns_cdc/
-  partition_cols: [snapshot_date]
+  partition_cols:
+  - snapshot_date
   format_options:
-    delimiter: ","
+    delimiter: ','
     header: true
-    null_format: ""
-
+    null_format: ''
 target:
   project: acme-analytics
   dataset: raw
   table: returns_cdc
-
 transforms:
-  partition_key_conversion: null  # snapshot_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: return_id, from: BIGINT, to: INT64 }
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-
+  - col: return_id
+    from: BIGINT
+    to: INT64
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [return_id, invoice_no]
-
+  null_check_cols:
+  - return_id
+  - invoice_no
 wave: wave_1_small
 migration_tier: standard

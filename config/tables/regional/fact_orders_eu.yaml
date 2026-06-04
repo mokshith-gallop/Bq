@@ -1,35 +1,34 @@
-# Manifest: regional.fact_orders_eu
-# Source: Hive Parquet managed table on acme-edge cluster
-# Multi-col partition: order_year/order_month INT + country_partition STRING
-# Generated column in BQ: partition_month DATE AS (DATE(order_year, order_month, 1))
-# Bucketed by customer_id INTO 16 — moved to CLUSTER BY in BQ
-# CRITICAL tier
 source:
   database: regional
   table: fact_orders_eu
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/fact_orders_eu/
-  partition_cols: [order_year, order_month, country_partition]
-
+  partition_cols:
+  - order_year
+  - order_month
+  - country_partition
 target:
   project: acme-analytics-eu
   dataset: regional_eu
   table: fact_orders_eu
-
 transforms:
   partition_key_conversion:
-    source_cols: [order_year, order_month]
+    source_cols:
+    - order_year
+    - order_month
     target_col: partition_month
     parse_fn: DATE
     generated_column: true
   map_to_json: []
   type_widening:
-    - { col: quantity, from: INT, to: INT64 }
-
-wave: eu
-migration_tier: critical
-
+  - col: quantity
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [order_id, customer_id]
+  null_check_cols:
+  - order_id
+  - customer_id
+wave: eu
+migration_tier: critical

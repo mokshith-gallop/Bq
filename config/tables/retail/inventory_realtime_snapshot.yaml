@@ -1,13 +1,14 @@
 # Manifest: retail.inventory_realtime_snapshot
-# Source: retail.kudu_inventory_realtime (Kudu table on acme-analytics cluster)
-# Kudu batch analytics snapshot — exported as Parquet to GCS
-# Epoch ms conversion: last_updated_ts BIGINT → TIMESTAMP
+# Source: retail.kudu_inventory_realtime (Kudu table, acme-analytics cluster)
+# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
+# Non-partitioned in BQ
 source:
   database: retail
   table: kudu_inventory_realtime
   cluster: acme-analytics
-  format: kudu_snapshot
+  format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_inventory_realtime/
+  partition_cols: []
 
 target:
   project: acme-analytics
@@ -21,10 +22,12 @@ transforms:
     - { col: on_hand, from: INT, to: INT64 }
     - { col: allocated, from: INT, to: INT64 }
     - { col: available, from: INT, to: INT64 }
-  kudu_epoch_cols: [last_updated_ts]
+  kudu_epoch_conversion:
+    - { col: last_updated_ts, from_unit: millis }
 
 wave: wave_1_small
 
 validation:
   watermark_col: null
   null_check_cols: [warehouse_id, sku]
+migration_tier: standard

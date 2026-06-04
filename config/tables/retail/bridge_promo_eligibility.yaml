@@ -1,27 +1,29 @@
-# Manifest: retail.bridge_promo_eligibility
 source:
   database: retail
   table: bridge_promo_eligibility
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_promo_eligibility/
-  partition_cols: [load_date]
-
+  partition_cols:
+  - load_date
 target:
   project: acme-analytics
   dataset: retail
   table: bridge_promo_eligibility
-
 transforms:
-  partition_key_conversion: null  # load_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-    - { col: promo_sk, from: BIGINT, to: INT64 }
-
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
+  - col: promo_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [customer_sk, promo_sk]
-
+  null_check_cols:
+  - customer_sk
+  - promo_sk
 wave: wave_1_small
 migration_tier: standard

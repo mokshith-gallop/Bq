@@ -1,30 +1,29 @@
-# Manifest: staging.dedup_clickstream
 source:
   database: staging
   table: dedup_clickstream
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/dedup_clickstream/
-  partition_cols: [date_ts, country_partition]
-
+  partition_cols:
+  - date_ts
+  - country_partition
 target:
   project: acme-analytics
   dataset: staging
   table: dedup_clickstream
-
 transforms:
   partition_key_conversion:
     source_col: date_ts
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: date_ts
-  null_check_cols: [session_id, user_id]
-
+  null_check_cols:
+  - session_id
+  - user_id
 wave: wave_2_medium
 migration_tier: standard

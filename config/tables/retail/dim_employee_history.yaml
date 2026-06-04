@@ -1,29 +1,35 @@
-# Manifest: retail.dim_employee_history
 source:
   database: retail
   table: dim_employee_history
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_employee_history/
-  partition_cols: [eff_from_year]
-
+  partition_cols:
+  - eff_from_year
 target:
   project: acme-analytics
   dataset: retail
   table: dim_employee_history
-
 transforms:
-  partition_key_conversion: null  # eff_from_year INT preserved as column, no BQ partition
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: history_id, from: BIGINT, to: INT64 }
-    - { col: employee_sk, from: BIGINT, to: INT64 }
-    - { col: home_store_sk, from: BIGINT, to: INT64 }
-    - { col: eff_from_year, from: INT, to: INT64 }
-
+  - col: history_id
+    from: BIGINT
+    to: INT64
+  - col: employee_sk
+    from: BIGINT
+    to: INT64
+  - col: home_store_sk
+    from: BIGINT
+    to: INT64
+  - col: eff_from_year
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [history_id, employee_sk]
-
+  null_check_cols:
+  - history_id
+  - employee_sk
 wave: wave_1_small
 migration_tier: standard

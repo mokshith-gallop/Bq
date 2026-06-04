@@ -1,14 +1,14 @@
 # Manifest: retail.acid_inventory_adjustments_log
-# Source: Hive ACID/ORC table on acme-analytics cluster
-# ACID: requires major compaction before DistCp
-# Non-partitioned — CLUSTER BY adjustment_id in BQ
 source:
   database: retail
   table: acid_inventory_adjustments_log
   cluster: acme-analytics
-  format: orc_acid
+  format: orc
   gcs_path: gs://acme-migration-staging-us/retail/acid_inventory_adjustments_log/
-  acid_compaction: true
+  partition_cols: []
+  format_options:
+    acid_compaction: true
+    transactional: true
 
 target:
   project: acme-analytics
@@ -18,13 +18,15 @@ target:
 transforms:
   partition_key_conversion: null
   map_to_json: []
+  acid_compaction: true
   type_widening:
     - { col: adjustment_id, from: BIGINT, to: INT64 }
     - { col: warehouse_sk, from: BIGINT, to: INT64 }
     - { col: quantity_delta, from: INT, to: INT64 }
 
-wave: wave_3_large
-
 validation:
   watermark_col: null
   null_check_cols: [adjustment_id, sku]
+
+wave: wave_3_large
+migration_tier: standard

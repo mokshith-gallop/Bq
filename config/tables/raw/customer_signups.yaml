@@ -1,32 +1,29 @@
-# Manifest: raw.customer_signups
 source:
   database: raw
   table: customer_signups
   cluster: acme-lake
   format: avro
   gcs_path: gs://acme-migration-staging-us/raw/customer_signups/
-  partition_cols: [signup_date]
+  partition_cols:
+  - signup_date
   format_options:
     avro_schema_url: hdfs:///user/etl/schemas/customer_signups-v3.avsc
-
 target:
   project: acme-analytics
   dataset: raw
   table: customer_signups
-
 transforms:
   partition_key_conversion:
     source_col: signup_date
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: signup_date
-  null_check_cols: [customer_id]
-
+  null_check_cols:
+  - customer_id
 wave: wave_1_small
 migration_tier: standard

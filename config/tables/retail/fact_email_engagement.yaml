@@ -1,27 +1,29 @@
-# Manifest: retail.fact_email_engagement
 source:
   database: retail
   table: fact_email_engagement
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_email_engagement/
-  partition_cols: [event_date]
-
+  partition_cols:
+  - event_date
 target:
   project: acme-analytics
   dataset: retail
   table: fact_email_engagement
-
 transforms:
-  partition_key_conversion: null  # event_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: campaign_sk, from: BIGINT, to: INT64 }
-    - { col: user_sk, from: BIGINT, to: INT64 }
-
+  - col: campaign_sk
+    from: BIGINT
+    to: INT64
+  - col: user_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [send_id, campaign_sk]
-
+  null_check_cols:
+  - send_id
+  - campaign_sk
 wave: wave_2_medium
 migration_tier: standard

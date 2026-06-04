@@ -1,31 +1,28 @@
-# Manifest: regional.events_eu
-# Source: Hive Parquet managed table on acme-edge cluster
-# STRING partition event_date → partition_date DATE (non-generated, Spark populates)
 source:
   database: regional
   table: events_eu
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/events_eu/
-  partition_cols: [event_date]
-
+  partition_cols:
+  - event_date
 target:
   project: acme-analytics-eu
   dataset: regional_eu
   table: events_eu
-
 transforms:
   partition_key_conversion:
     source_col: event_date
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening: []
-
-wave: eu
-
 validation:
   watermark_col: event_date
-  null_check_cols: [event_id, user_id]
+  null_check_cols:
+  - event_id
+  - user_id
+wave: eu
+migration_tier: standard

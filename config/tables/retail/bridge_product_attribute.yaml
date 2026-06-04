@@ -1,4 +1,3 @@
-# Manifest: retail.bridge_product_attribute
 source:
   database: retail
   table: bridge_product_attribute
@@ -6,22 +5,24 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_product_attribute/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: bridge_product_attribute
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: product_sk, from: BIGINT, to: INT64 }
-    - { col: sort_order, from: INT, to: INT64 }
-
+  - col: product_sk
+    from: BIGINT
+    to: INT64
+  - col: sort_order
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [product_sk, attribute_name]
-
+  null_check_cols:
+  - product_sk
+  - attribute_name
 wave: wave_1_small
 migration_tier: standard

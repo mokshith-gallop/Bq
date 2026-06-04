@@ -1,30 +1,38 @@
-# Manifest: retail.fact_chat_interactions
 source:
   database: retail
   table: fact_chat_interactions
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_chat_interactions/
-  partition_cols: [start_date]
-
+  partition_cols:
+  - start_date
 target:
   project: acme-analytics
   dataset: retail
   table: fact_chat_interactions
-
 transforms:
-  partition_key_conversion: null  # start_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-    - { col: agent_sk, from: BIGINT, to: INT64 }
-    - { col: duration_sec, from: INT, to: INT64 }
-    - { col: message_count, from: INT, to: INT64 }
-    - { col: csat_score, from: INT, to: INT64 }
-
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
+  - col: agent_sk
+    from: BIGINT
+    to: INT64
+  - col: duration_sec
+    from: INT
+    to: INT64
+  - col: message_count
+    from: INT
+    to: INT64
+  - col: csat_score
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [chat_id, customer_sk]
-
+  null_check_cols:
+  - chat_id
+  - customer_sk
 wave: wave_2_medium
 migration_tier: standard

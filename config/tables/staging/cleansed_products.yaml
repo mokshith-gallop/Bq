@@ -1,25 +1,22 @@
-# Manifest: staging.cleansed_products
 source:
   database: staging
   table: cleansed_products
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/cleansed_products/
-  partition_cols: [load_date]
-
+  partition_cols:
+  - load_date
 target:
   project: acme-analytics
   dataset: staging
   table: cleansed_products
-
 transforms:
-  partition_key_conversion: null  # load_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: null
-  null_check_cols: [sku]
-
+  null_check_cols:
+  - sku
 wave: wave_1_small
 migration_tier: standard

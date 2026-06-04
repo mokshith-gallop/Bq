@@ -1,4 +1,3 @@
-# Manifest: retail.dim_color
 source:
   database: retail
   table: dim_color
@@ -6,21 +5,21 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_color/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: dim_color
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: color_sk, from: BIGINT, to: INT64 }
-
+  - col: color_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [color_sk, color_code]
-
+  null_check_cols:
+  - color_sk
+  - color_code
 wave: wave_1_small
 migration_tier: standard

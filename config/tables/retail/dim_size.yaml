@@ -1,4 +1,3 @@
-# Manifest: retail.dim_size
 source:
   database: retail
   table: dim_size
@@ -6,22 +5,24 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_size/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: dim_size
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: size_sk, from: BIGINT, to: INT64 }
-    - { col: sort_order, from: INT, to: INT64 }
-
+  - col: size_sk
+    from: BIGINT
+    to: INT64
+  - col: sort_order
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [size_sk, size_code]
-
+  null_check_cols:
+  - size_sk
+  - size_code
 wave: wave_1_small
 migration_tier: standard

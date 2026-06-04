@@ -1,13 +1,14 @@
 # Manifest: retail.realtime_price_snapshot
-# Source: retail.kudu_realtime_price (Kudu table on acme-analytics cluster)
-# Kudu batch analytics snapshot — exported as Parquet to GCS
-# Epoch ms conversion: updated_ts BIGINT → TIMESTAMP
+# Source: retail.kudu_realtime_price (Kudu table, acme-analytics cluster)
+# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
+# Non-partitioned in BQ
 source:
   database: retail
   table: kudu_realtime_price
   cluster: acme-analytics
-  format: kudu_snapshot
+  format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_realtime_price/
+  partition_cols: []
 
 target:
   project: acme-analytics
@@ -18,10 +19,12 @@ transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
-  kudu_epoch_cols: [updated_ts]
+  kudu_epoch_conversion:
+    - { col: updated_ts, from_unit: millis }
 
 wave: wave_1_small
 
 validation:
   watermark_col: null
   null_check_cols: [sku, store_id]
+migration_tier: standard

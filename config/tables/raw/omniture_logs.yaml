@@ -1,34 +1,31 @@
-# Manifest: raw.omniture_logs
 source:
   database: raw
   table: omniture_logs
   cluster: acme-lake
   format: textfile_tsv
   gcs_path: gs://acme-migration-staging-us/raw/weblogs/
-  partition_cols: [date_ts]
+  partition_cols:
+  - date_ts
   format_options:
     delimiter: "\t"
     header: false
     column_count: 60
-
 target:
   project: acme-analytics
   dataset: raw
   table: omniture_logs
-
 transforms:
   partition_key_conversion:
     source_col: date_ts
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: date_ts
-  null_check_cols: [col_2]
-
+  null_check_cols:
+  - col_2
 wave: wave_3_large
 migration_tier: critical

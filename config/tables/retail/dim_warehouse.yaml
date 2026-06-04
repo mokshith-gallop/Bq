@@ -1,4 +1,3 @@
-# Manifest: retail.dim_warehouse
 source:
   database: retail
   table: dim_warehouse
@@ -6,22 +5,24 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_warehouse/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: dim_warehouse
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: warehouse_sk, from: BIGINT, to: INT64 }
-    - { col: capacity_units, from: BIGINT, to: INT64 }
-
+  - col: warehouse_sk
+    from: BIGINT
+    to: INT64
+  - col: capacity_units
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [warehouse_sk, warehouse_id]
-
+  null_check_cols:
+  - warehouse_sk
+  - warehouse_id
 wave: wave_1_small
 migration_tier: standard

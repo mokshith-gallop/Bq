@@ -1,25 +1,22 @@
-# Manifest: staging.geocoded_addresses
 source:
   database: staging
   table: geocoded_addresses
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/geocoded_addresses/
-  partition_cols: [load_date]
-
+  partition_cols:
+  - load_date
 target:
   project: acme-analytics
   dataset: staging
   table: geocoded_addresses
-
 transforms:
-  partition_key_conversion: null  # load_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening: []
-
 validation:
   watermark_col: null
-  null_check_cols: [raw_addr_hash]
-
+  null_check_cols:
+  - raw_addr_hash
 wave: wave_1_small
 migration_tier: standard

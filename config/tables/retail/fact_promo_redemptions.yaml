@@ -1,28 +1,32 @@
-# Manifest: retail.fact_promo_redemptions
 source:
   database: retail
   table: fact_promo_redemptions
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_promo_redemptions/
-  partition_cols: [redemption_date]
-
+  partition_cols:
+  - redemption_date
 target:
   project: acme-analytics
   dataset: retail
   table: fact_promo_redemptions
-
 transforms:
-  partition_key_conversion: null  # redemption_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: redemption_id, from: BIGINT, to: INT64 }
-    - { col: promo_sk, from: BIGINT, to: INT64 }
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-
+  - col: redemption_id
+    from: BIGINT
+    to: INT64
+  - col: promo_sk
+    from: BIGINT
+    to: INT64
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [redemption_id, invoice_no]
-
+  null_check_cols:
+  - redemption_id
+  - invoice_no
 wave: wave_1_small
 migration_tier: standard

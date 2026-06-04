@@ -1,26 +1,26 @@
-# Manifest: staging.fraud_scored
 source:
   database: staging
   table: fraud_scored
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/fraud_scored/
-  partition_cols: [score_date]
-
+  partition_cols:
+  - score_date
 target:
   project: acme-analytics
   dataset: staging
   table: fraud_scored
-
 transforms:
-  partition_key_conversion: null  # score_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: txn_id, from: BIGINT, to: INT64 }
-
+  - col: txn_id
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [txn_id, customer_id]
-
+  null_check_cols:
+  - txn_id
+  - customer_id
 wave: wave_2_medium
 migration_tier: standard

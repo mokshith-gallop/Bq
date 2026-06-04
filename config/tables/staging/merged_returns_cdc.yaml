@@ -1,27 +1,29 @@
-# Manifest: staging.merged_returns_cdc
 source:
   database: staging
   table: merged_returns_cdc
   cluster: acme-lake
   format: parquet
   gcs_path: gs://acme-migration-staging-us/staging/merged_returns_cdc/
-  partition_cols: [snapshot_date]
-
+  partition_cols:
+  - snapshot_date
 target:
   project: acme-analytics
   dataset: staging
   table: merged_returns_cdc
-
 transforms:
-  partition_key_conversion: null  # snapshot_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: return_id, from: BIGINT, to: INT64 }
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-
+  - col: return_id
+    from: BIGINT
+    to: INT64
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [return_id, invoice_no]
-
+  null_check_cols:
+  - return_id
+  - invoice_no
 wave: wave_2_medium
 migration_tier: standard

@@ -1,4 +1,3 @@
-# Manifest: retail.bridge_product_supplier
 source:
   database: retail
   table: bridge_product_supplier
@@ -6,24 +5,30 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_product_supplier/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: bridge_product_supplier
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: product_sk, from: BIGINT, to: INT64 }
-    - { col: supplier_sk, from: BIGINT, to: INT64 }
-    - { col: lead_time_days, from: INT, to: INT64 }
-    - { col: moq, from: INT, to: INT64 }
-
+  - col: product_sk
+    from: BIGINT
+    to: INT64
+  - col: supplier_sk
+    from: BIGINT
+    to: INT64
+  - col: lead_time_days
+    from: INT
+    to: INT64
+  - col: moq
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [product_sk, supplier_sk]
-
+  null_check_cols:
+  - product_sk
+  - supplier_sk
 wave: wave_1_small
 migration_tier: standard

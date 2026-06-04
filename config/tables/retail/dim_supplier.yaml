@@ -1,4 +1,3 @@
-# Manifest: retail.dim_supplier
 source:
   database: retail
   table: dim_supplier
@@ -6,22 +5,24 @@ source:
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_supplier/
   partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: dim_supplier
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: supplier_sk, from: BIGINT, to: INT64 }
-    - { col: payment_terms_days, from: INT, to: INT64 }
-
+  - col: supplier_sk
+    from: BIGINT
+    to: INT64
+  - col: payment_terms_days
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [supplier_sk, supplier_id]
-
+  null_check_cols:
+  - supplier_sk
+  - supplier_id
 wave: wave_1_small
 migration_tier: standard

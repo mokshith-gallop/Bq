@@ -1,26 +1,26 @@
-# Manifest: retail.bridge_customer_segment
 source:
   database: retail
   table: bridge_customer_segment
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_customer_segment/
-  partition_cols: [snapshot_date]
-
+  partition_cols:
+  - snapshot_date
 target:
   project: acme-analytics
   dataset: retail
   table: bridge_customer_segment
-
 transforms:
-  partition_key_conversion: null  # snapshot_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [customer_sk, segment_id]
-
+  null_check_cols:
+  - customer_sk
+  - segment_id
 wave: wave_1_small
 migration_tier: standard

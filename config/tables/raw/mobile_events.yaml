@@ -1,34 +1,36 @@
-# Manifest: raw.mobile_events
 source:
   database: raw
   table: mobile_events
   cluster: acme-lake
   format: json_serde
   gcs_path: gs://acme-migration-staging-us/raw/mobile_events/
-  partition_cols: [event_date, hour_bucket]
+  partition_cols:
+  - event_date
+  - hour_bucket
   format_options:
     ndjson: true
-
 target:
   project: acme-analytics
   dataset: raw
   table: mobile_events
-
 transforms:
   partition_key_conversion:
     source_col: event_date
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
-    generated_column: true  # BQ DDL: partition_date DATE AS (PARSE_DATE('%Y%m%d', event_date))
+    generated_column: true
   map_to_json:
-    - { source_col: properties, target_col: properties }
+  - source_col: properties
+    target_col: properties
   type_widening:
-    - { col: hour_bucket, from: TINYINT, to: INT64 }
-
+  - col: hour_bucket
+    from: TINYINT
+    to: INT64
 validation:
   watermark_col: event_date
-  null_check_cols: [event_id, user_id]
-
+  null_check_cols:
+  - event_id
+  - user_id
 wave: wave_3_large
 migration_tier: critical

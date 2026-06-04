@@ -1,28 +1,31 @@
-# Manifest: retail.agg_monthly_supplier_performance
 source:
   database: retail
   table: agg_monthly_supplier_performance
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/agg_monthly_supplier_performance/
-  partition_cols: [month_start]
-
+  partition_cols:
+  - month_start
 target:
   project: acme-analytics
   dataset: retail
   table: agg_monthly_supplier_performance
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: supplier_sk, from: BIGINT, to: INT64 }
-    - { col: orders_placed, from: INT, to: INT64 }
-    - { col: units_received, from: BIGINT, to: INT64 }
-
+  - col: supplier_sk
+    from: BIGINT
+    to: INT64
+  - col: orders_placed
+    from: INT
+    to: INT64
+  - col: units_received
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [supplier_sk]
-
+  null_check_cols:
+  - supplier_sk
 wave: wave_1_small
 migration_tier: standard

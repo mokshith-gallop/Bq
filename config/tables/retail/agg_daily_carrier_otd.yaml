@@ -1,29 +1,34 @@
-# Manifest: retail.agg_daily_carrier_otd
 source:
   database: retail
   table: agg_daily_carrier_otd
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/agg_daily_carrier_otd/
-  partition_cols: [ship_date]
-
+  partition_cols:
+  - ship_date
 target:
   project: acme-analytics
   dataset: retail
   table: agg_daily_carrier_otd
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: shipments_total, from: INT, to: INT64 }
-    - { col: delivered_on_time, from: INT, to: INT64 }
-    - { col: delivered_late, from: INT, to: INT64 }
-    - { col: in_transit, from: INT, to: INT64 }
-
+  - col: shipments_total
+    from: INT
+    to: INT64
+  - col: delivered_on_time
+    from: INT
+    to: INT64
+  - col: delivered_late
+    from: INT
+    to: INT64
+  - col: in_transit
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [carrier]
-
+  null_check_cols:
+  - carrier
 wave: wave_1_small
 migration_tier: standard

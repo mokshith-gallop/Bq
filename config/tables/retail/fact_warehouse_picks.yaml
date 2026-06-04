@@ -1,30 +1,39 @@
-# Manifest: retail.fact_warehouse_picks
 source:
   database: retail
   table: fact_warehouse_picks
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_warehouse_picks/
-  partition_cols: [pick_date, warehouse_partition]
-
+  partition_cols:
+  - pick_date
+  - warehouse_partition
 target:
   project: acme-analytics
   dataset: retail
   table: fact_warehouse_picks
-
 transforms:
-  partition_key_conversion: null  # pick_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: pick_id, from: BIGINT, to: INT64 }
-    - { col: warehouse_sk, from: BIGINT, to: INT64 }
-    - { col: picker_sk, from: BIGINT, to: INT64 }
-    - { col: quantity, from: INT, to: INT64 }
-    - { col: duration_ms, from: INT, to: INT64 }
-
+  - col: pick_id
+    from: BIGINT
+    to: INT64
+  - col: warehouse_sk
+    from: BIGINT
+    to: INT64
+  - col: picker_sk
+    from: BIGINT
+    to: INT64
+  - col: quantity
+    from: INT
+    to: INT64
+  - col: duration_ms
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [pick_id, sku]
-
+  null_check_cols:
+  - pick_id
+  - sku
 wave: wave_2_medium
 migration_tier: standard

@@ -1,26 +1,22 @@
-# Manifest: regional.staging_customers_eu_cdc
-# Source: Hive Parquet managed table on acme-edge cluster (CDC feed)
-# Partition: snapshot_date DATE (native — no conversion)
 source:
   database: regional
   table: staging_customers_eu_cdc
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/staging_customers_eu_cdc/
-  partition_cols: [snapshot_date]
-
+  partition_cols:
+  - snapshot_date
 target:
   project: acme-analytics-eu
   dataset: regional_eu
   table: staging_customers_eu_cdc
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
-
-wave: eu
-
 validation:
   watermark_col: null
-  null_check_cols: [customer_id]
+  null_check_cols:
+  - customer_id
+wave: eu
+migration_tier: standard

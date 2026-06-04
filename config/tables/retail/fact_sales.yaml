@@ -1,28 +1,33 @@
-# Manifest: retail.fact_sales
 source:
   database: retail
   table: fact_sales
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/fact_sales/
-  partition_cols: [sale_date]
-
+  partition_cols:
+  - sale_date
 target:
   project: acme-analytics
   dataset: retail
   table: fact_sales
-
 transforms:
-  partition_key_conversion: null  # sale_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-    - { col: product_sk, from: BIGINT, to: INT64 }
-    - { col: quantity, from: INT, to: INT64 }
-
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
+  - col: product_sk
+    from: BIGINT
+    to: INT64
+  - col: quantity
+    from: INT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [invoice_no, customer_sk, product_sk]
-
+  null_check_cols:
+  - invoice_no
+  - customer_sk
+  - product_sk
 wave: wave_3_large
 migration_tier: critical

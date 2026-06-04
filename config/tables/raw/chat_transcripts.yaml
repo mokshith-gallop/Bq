@@ -1,35 +1,37 @@
-# Manifest: raw.chat_transcripts
 source:
   database: raw
   table: chat_transcripts
   cluster: acme-lake
   format: textfile_csv
   gcs_path: gs://acme-migration-staging-us/raw/chat_transcripts/
-  partition_cols: [date_ts]
+  partition_cols:
+  - date_ts
   format_options:
     delimiter: "\t"
     header: false
-
 target:
   project: acme-analytics
   dataset: raw
   table: chat_transcripts
-
 transforms:
   partition_key_conversion:
     source_col: date_ts
     target_col: partition_date
-    parse_format: "%Y%m%d"
+    parse_format: '%Y%m%d'
     parse_fn: PARSE_DATE
     generated_column: false
   map_to_json: []
   type_widening:
-    - { col: duration_sec, from: INT, to: INT64 }
-    - { col: message_count, from: INT, to: INT64 }
-
+  - col: duration_sec
+    from: INT
+    to: INT64
+  - col: message_count
+    from: INT
+    to: INT64
 validation:
   watermark_col: date_ts
-  null_check_cols: [chat_id, customer_id]
-
+  null_check_cols:
+  - chat_id
+  - customer_id
 wave: wave_1_small
 migration_tier: standard

@@ -1,28 +1,31 @@
-# Manifest: retail.agg_daily_sales_by_store
 source:
   database: retail
   table: agg_daily_sales_by_store
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/agg_daily_sales_by_store/
-  partition_cols: [sale_date]
-
+  partition_cols:
+  - sale_date
 target:
   project: acme-analytics
   dataset: retail
   table: agg_daily_sales_by_store
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: store_sk, from: BIGINT, to: INT64 }
-    - { col: units_sold, from: BIGINT, to: INT64 }
-    - { col: txn_count, from: BIGINT, to: INT64 }
-
+  - col: store_sk
+    from: BIGINT
+    to: INT64
+  - col: units_sold
+    from: BIGINT
+    to: INT64
+  - col: txn_count
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [store_sk]
-
+  null_check_cols:
+  - store_sk
 wave: wave_1_small
 migration_tier: standard

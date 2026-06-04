@@ -1,30 +1,37 @@
-# Manifest: retail.sales_cube
 source:
   database: retail
   table: sales_cube
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/sales_cube/
-  partition_cols: [as_of_date]
-
+  partition_cols:
+  - as_of_date
 target:
   project: acme-analytics
   dataset: retail
   table: sales_cube
-
 transforms:
-  partition_key_conversion: null  # as_of_date is native DATE — no conversion
+  partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: dim_level, from: TINYINT, to: INT64 }
-    - { col: month_key, from: SMALLINT, to: INT64 }
-    - { col: product_sk, from: BIGINT, to: INT64 }
-    - { col: orders, from: BIGINT, to: INT64 }
-    - { col: units, from: BIGINT, to: INT64 }
-
+  - col: dim_level
+    from: TINYINT
+    to: INT64
+  - col: month_key
+    from: SMALLINT
+    to: INT64
+  - col: product_sk
+    from: BIGINT
+    to: INT64
+  - col: orders
+    from: BIGINT
+    to: INT64
+  - col: units
+    from: BIGINT
+    to: INT64
 validation:
   watermark_col: null
-  null_check_cols: [cube_key]
-
+  null_check_cols:
+  - cube_key
 wave: wave_1_small
 migration_tier: standard
