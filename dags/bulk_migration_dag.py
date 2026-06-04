@@ -688,12 +688,14 @@ with DAG(
 
         Each table gets:
           1. A DataprocSubmitJobOperator to run bulk_load.py
-          2. Inline validation tasks (null key checks; row/partition
-             count checks are built with None and will be enhanced
-             once the runtime source_counts integration is wired)
+          2. Inline validation tasks:
+             - Row count parity (reads expected from source_counts.json at runtime)
+             - Partition count parity (runtime, partitioned tables only)
+             - Null key checks (static — COUNTIF(col IS NULL) = 0)
 
         All load tasks within a wave run concurrently, controlled by
-        the Airflow pool slot limit.
+        the Airflow pool slot limit.  Validation failures fire Slack
+        alerts but do NOT block sibling tables in the same wave.
         """
         with TaskGroup(group_id, tooltip=tooltip) as tg:
             pool_name = _WAVE_POOLS[wave_name]
@@ -728,15 +730,12 @@ with DAG(
                 )
 
                 # ── Inline validation tasks ──
-                # Row/partition counts are not available at DAG parse
-                # time (they're captured at runtime in Phase 1).
-                # We pass None so that only null-key checks are built
-                # now.  A future enhancement can wire XCom-based
-                # runtime count resolution here.
+                # Row/partition count checks resolve expected values
+                # at runtime by reading source_counts.json from GCS
+                # (captured in Phase 1).  Null-key checks are static.
                 validation_tasks = build_inline_validation_tasks(
                     manifest=manifest,
-                    expected_row_count=None,
-                    expected_partition_count=None,
+                    source_counts_gcs_path=SOURCE_COUNTS_GCS,
                     gcp_conn_id=GCP_CONN_ID,
                 )
 

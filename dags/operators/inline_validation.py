@@ -1,13 +1,19 @@
 """
 inline_validation.py — Reusable inline validation task factories.
 
-Generates BigQueryCheckOperator tasks that run immediately after each table
-load to catch gross failures fast: empty tables, truncated loads, corrupt
-parsing.  Three checks per table:
+Generates Airflow tasks that run immediately after each table load to catch
+gross failures fast: empty tables, truncated loads, corrupt parsing.
+
+Three checks per table:
 
   1. **Row count parity**   — ``COUNT(*)`` in BQ == expected from source manifest
   2. **Partition count**    — ``COUNT(DISTINCT partition_col)`` matches expected
   3. **Null key validation** — key columns have no unexpected NULLs
+
+Row count and partition count checks use a PythonOperator that downloads
+source_counts.json from GCS at runtime (the file is produced during Phase 1
+of the DAG and is not available at DAG parse time).  Null key checks use a
+BigQueryCheckOperator with static SQL (0 NULLs expected in key columns).
 
 These are intentionally lightweight smoke tests.  The full 4-layer validation
 (column aggregates, row-level fingerprints, BAQs) runs in a separate
@@ -16,14 +22,11 @@ downstream pipeline.
 Usage in the DAG::
 
     from dags.operators.inline_validation import build_inline_validation_tasks
-    from dags.utils.manifest_loader import (
-        get_expected_row_count, get_expected_partition_count,
-    )
 
     tasks = build_inline_validation_tasks(
         manifest=manifest,
-        expected_row_count=get_expected_row_count(source_counts, manifest),
-        expected_partition_count=get_expected_partition_count(source_counts, manifest),
+        source_counts_gcs_path="gs://bucket/manifests/source_counts.json",
+        gcp_conn_id="google_cloud_default",
     )
     for vt in tasks:
         load_task >> vt
@@ -31,9 +34,12 @@ Usage in the DAG::
 
 from __future__ import annotations
 
+import json
 import logging
+import subprocess
 from typing import Any, Dict, List, Optional
 
+from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import (
     BigQueryCheckOperator,
 )
@@ -49,25 +55,12 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 _ROW_COUNT_SQL = """\
-SELECT
-  CASE
-    WHEN COUNT(*) = {expected_row_count} THEN TRUE
-    ELSE ERROR(FORMAT(
-      'Row count mismatch for {project}.{dataset}.{table}: expected %d, got %d',
-      {expected_row_count}, COUNT(*)))
-  END
+SELECT COUNT(*) AS row_count
 FROM `{project}.{dataset}.{table}`
 """
 
 _PARTITION_COUNT_SQL = """\
-SELECT
-  CASE
-    WHEN COUNT(DISTINCT {partition_col}) = {expected_partition_count} THEN TRUE
-    ELSE ERROR(FORMAT(
-      'Partition count mismatch for {project}.{dataset}.{table}: '
-      'expected %d distinct {partition_col}, got %d',
-      {expected_partition_count}, COUNT(DISTINCT {partition_col})))
-  END
+SELECT COUNT(DISTINCT {partition_col}) AS partition_count
 FROM `{project}.{dataset}.{table}`
 """
 
@@ -85,44 +78,193 @@ FROM `{project}.{dataset}.{table}`
 
 
 # ============================================================================
+# Runtime check callables (used by PythonOperator)
+# ============================================================================
+
+
+def _download_source_counts(gcs_path: str) -> Dict[str, Any]:
+    """Download and parse source_counts.json from GCS.
+
+    Uses gsutil (available in Composer) as a simple, dependency-free
+    fallback.  Falls back to gcsfs if available.
+    """
+    try:
+        import gcsfs
+        fs = gcsfs.GCSFileSystem()
+        with fs.open(gcs_path, "r") as fh:
+            return json.load(fh)
+    except ImportError:
+        pass
+
+    # Fallback: gsutil cp to a temp file
+    import tempfile
+    tmp = tempfile.mktemp(suffix=".json")
+    try:
+        subprocess.check_call(
+            ["gsutil", "cp", gcs_path, tmp],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        with open(tmp, "r") as fh:
+            return json.load(fh)
+    finally:
+        import os
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def _check_row_count(
+    project: str,
+    dataset: str,
+    table: str,
+    table_key: str,
+    source_counts_gcs_path: str,
+    gcp_conn_id: str = "google_cloud_default",
+    **context: Any,
+) -> None:
+    """Runtime callable: compare BQ row count against source manifest.
+
+    Raises AirflowException on mismatch so the task is marked as failed.
+    """
+    from airflow.exceptions import AirflowException
+    from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
+
+    # 1. Load expected count from source_counts.json
+    counts = _download_source_counts(source_counts_gcs_path)
+    entry = counts.get(table_key, {})
+    if isinstance(entry, dict):
+        expected = entry.get("row_count")
+    elif isinstance(entry, (int, float)):
+        expected = int(entry)
+    else:
+        expected = None
+
+    if expected is None:
+        logger.warning(
+            "No expected row count found for %s in %s — skipping check",
+            table_key,
+            source_counts_gcs_path,
+        )
+        return
+
+    # 2. Query BQ for actual count
+    hook = BigQueryHook(gcp_conn_id=gcp_conn_id, use_legacy_sql=False)
+    sql = _ROW_COUNT_SQL.format(
+        project=project, dataset=dataset, table=table,
+    )
+    result = hook.get_first(sql)
+    actual = result[0] if result else 0
+
+    # 3. Compare with exact match (zero delta tolerance)
+    if actual != expected:
+        raise AirflowException(
+            f"Row count mismatch for {project}.{dataset}.{table}: "
+            f"expected {expected:,}, got {actual:,} "
+            f"(delta: {actual - expected:+,})"
+        )
+    logger.info(
+        "Row count PASS for %s.%s.%s: %s rows",
+        project, dataset, table, f"{actual:,}",
+    )
+
+
+def _check_partition_count(
+    project: str,
+    dataset: str,
+    table: str,
+    table_key: str,
+    partition_col: str,
+    source_counts_gcs_path: str,
+    gcp_conn_id: str = "google_cloud_default",
+    **context: Any,
+) -> None:
+    """Runtime callable: compare distinct partition count against source manifest.
+
+    Raises AirflowException on mismatch.
+    """
+    from airflow.exceptions import AirflowException
+    from airflow.providers.google.cloud.hooks.bigquery import BigQueryHook
+
+    # 1. Load expected count
+    counts = _download_source_counts(source_counts_gcs_path)
+    entry = counts.get(table_key, {})
+    expected = entry.get("partition_count") if isinstance(entry, dict) else None
+
+    if expected is None:
+        logger.warning(
+            "No expected partition count for %s — skipping check",
+            table_key,
+        )
+        return
+
+    # 2. Query BQ
+    hook = BigQueryHook(gcp_conn_id=gcp_conn_id, use_legacy_sql=False)
+    sql = _PARTITION_COUNT_SQL.format(
+        project=project,
+        dataset=dataset,
+        table=table,
+        partition_col=partition_col,
+    )
+    result = hook.get_first(sql)
+    actual = result[0] if result else 0
+
+    # 3. Compare
+    if actual != expected:
+        raise AirflowException(
+            f"Partition count mismatch for {project}.{dataset}.{table}: "
+            f"expected {expected:,} distinct {partition_col}, "
+            f"got {actual:,} (delta: {actual - expected:+,})"
+        )
+    logger.info(
+        "Partition count PASS for %s.%s.%s: %s distinct %s values",
+        project, dataset, table, f"{actual:,}", partition_col,
+    )
+
+
+# ============================================================================
 # Public API
 # ============================================================================
 
 
 def build_inline_validation_tasks(
     manifest: Dict[str, Any],
-    expected_row_count: Optional[int],
-    expected_partition_count: Optional[int] = None,
+    source_counts_gcs_path: str,
     task_id_prefix: str = "",
     gcp_conn_id: str = "google_cloud_default",
-) -> List[BigQueryCheckOperator]:
-    """Build 2-3 BigQueryCheckOperator tasks for inline validation.
+) -> list:
+    """Build validation tasks for a single migrated table.
 
-    Generates validation tasks for a single migrated table.  Each task is
-    independent and will fire a Slack alert on failure but will **not**
-    block sibling tables in the same wave (Airflow ``trigger_rule`` on
-    downstream tasks handles this).
+    Generates 2-3 Airflow tasks:
+
+    1. **Row count check** (PythonOperator) — downloads source_counts.json
+       from GCS at runtime, queries ``COUNT(*)`` in BigQuery, compares with
+       exact match.  Skips gracefully if source count is unavailable.
+
+    2. **Partition count check** (PythonOperator) — same runtime resolution
+       pattern; checks ``COUNT(DISTINCT partition_col)``.  Only generated
+       for partitioned tables.
+
+    3. **Null key check(s)** (BigQueryCheckOperator) — one per key column
+       listed in ``validation.null_check_cols``.  Uses static SQL with
+       ``expected_null_count=0`` (configurable via manifest
+       ``validation.expected_null_counts``).
+
+    Each task fires a Slack alert on failure via ``on_failure_callback``
+    but does **not** block sibling tables in the same wave.
 
     Args:
         manifest:
             Parsed YAML manifest dict for the table.
-        expected_row_count:
-            Row count captured from the source Hive table during the
-            ``capture_source_counts`` phase.  If ``None``, the row count
-            check is skipped (e.g. when source counts haven't been
-            captured yet during DAG definition time).
-        expected_partition_count:
-            Expected number of distinct partition values.
-            If ``None``, the partition count check is skipped.
+        source_counts_gcs_path:
+            GCS URI of source_counts.json (e.g.
+            ``gs://acme-migration-staging-us/manifests/source_counts.json``).
         task_id_prefix:
-            Optional prefix for task IDs (e.g. ``"w1_"``).
+            Optional prefix for task IDs.
         gcp_conn_id:
             Airflow connection ID for BigQuery.
 
     Returns:
-        List of ``BigQueryCheckOperator`` tasks ready for DAG wiring.
-        May be empty if no checks can be constructed (e.g. no expected
-        counts and no null_check_cols).
+        List of Airflow operator instances ready for DAG wiring.
     """
     target = manifest.get("target", {})
     project = target.get("project", "acme-analytics")
@@ -132,80 +274,55 @@ def build_inline_validation_tasks(
     validation_conf = manifest.get("validation", {})
     null_check_cols = validation_conf.get("null_check_cols", [])
 
-    tasks: List[BigQueryCheckOperator] = []
-
     table_key = get_table_key(manifest)
+    partition_col = get_bq_partition_column(manifest)
+
+    tasks: list = []
 
     # ------------------------------------------------------------------
-    # Check 1: Row count parity
+    # Check 1: Row count parity (runtime-resolved from GCS)
     # ------------------------------------------------------------------
-    if expected_row_count is not None:
-        sql = _ROW_COUNT_SQL.format(
-            project=project,
-            dataset=dataset,
-            table=table,
-            expected_row_count=expected_row_count,
-        )
-        task = BigQueryCheckOperator(
-            task_id=f"{task_id_prefix}chk_rowcount__{dataset}__{table}",
-            sql=sql,
-            use_legacy_sql=False,
-            gcp_conn_id=gcp_conn_id,
-            on_failure_callback=on_failure_callback,
-        )
-        tasks.append(task)
-        logger.debug(
-            "Built row-count check for %s (expected=%d)",
-            table_key,
-            expected_row_count,
-        )
-    else:
-        logger.info(
-            "Skipping row-count check for %s — no expected count available",
-            table_key,
-        )
+    row_count_task = PythonOperator(
+        task_id=f"{task_id_prefix}chk_rowcount__{dataset}__{table}",
+        python_callable=_check_row_count,
+        op_kwargs={
+            "project": project,
+            "dataset": dataset,
+            "table": table,
+            "table_key": table_key,
+            "source_counts_gcs_path": source_counts_gcs_path,
+            "gcp_conn_id": gcp_conn_id,
+        },
+        on_failure_callback=on_failure_callback,
+    )
+    tasks.append(row_count_task)
 
     # ------------------------------------------------------------------
     # Check 2: Partition count parity (partitioned tables only)
     # ------------------------------------------------------------------
-    partition_col = get_bq_partition_column(manifest)
-
-    if partition_col is not None and expected_partition_count is not None:
-        sql = _PARTITION_COUNT_SQL.format(
-            project=project,
-            dataset=dataset,
-            table=table,
-            partition_col=partition_col,
-            expected_partition_count=expected_partition_count,
-        )
-        task = BigQueryCheckOperator(
+    if partition_col is not None:
+        partition_count_task = PythonOperator(
             task_id=f"{task_id_prefix}chk_partcount__{dataset}__{table}",
-            sql=sql,
-            use_legacy_sql=False,
-            gcp_conn_id=gcp_conn_id,
+            python_callable=_check_partition_count,
+            op_kwargs={
+                "project": project,
+                "dataset": dataset,
+                "table": table,
+                "table_key": table_key,
+                "partition_col": partition_col,
+                "source_counts_gcs_path": source_counts_gcs_path,
+                "gcp_conn_id": gcp_conn_id,
+            },
             on_failure_callback=on_failure_callback,
         )
-        tasks.append(task)
-        logger.debug(
-            "Built partition-count check for %s on column '%s' (expected=%d)",
-            table_key,
-            partition_col,
-            expected_partition_count,
-        )
-    elif partition_col is not None and expected_partition_count is None:
-        logger.info(
-            "Skipping partition-count check for %s — no expected count",
-            table_key,
-        )
+        tasks.append(partition_count_task)
 
     # ------------------------------------------------------------------
-    # Check 3: Null key validation
+    # Check 3: Null key validation (static SQL, 0 NULLs expected)
     # ------------------------------------------------------------------
+    expected_null_counts = validation_conf.get("expected_null_counts", {})
+
     for key_col in null_check_cols:
-        # Default: 0 NULLs expected in key columns.  If a table needs
-        # a non-zero expectation (rare), the manifest can override via
-        # validation.expected_null_counts: {col: N}.
-        expected_null_counts = validation_conf.get("expected_null_counts", {})
         expected_nulls = expected_null_counts.get(key_col, 0)
 
         sql = _NULL_KEY_CHECK_SQL.format(
@@ -215,7 +332,7 @@ def build_inline_validation_tasks(
             key_col=key_col,
             expected_null_count=expected_nulls,
         )
-        task = BigQueryCheckOperator(
+        null_task = BigQueryCheckOperator(
             task_id=(
                 f"{task_id_prefix}chk_nullkey__{dataset}__{table}__{key_col}"
             ),
@@ -224,15 +341,16 @@ def build_inline_validation_tasks(
             gcp_conn_id=gcp_conn_id,
             on_failure_callback=on_failure_callback,
         )
-        tasks.append(task)
+        tasks.append(null_task)
 
-    if null_check_cols:
-        logger.debug(
-            "Built %d null-key checks for %s on columns: %s",
-            len(null_check_cols),
-            table_key,
-            null_check_cols,
-        )
+    logger.debug(
+        "Built %d validation tasks for %s "
+        "(1 row-count + %s partition-count + %d null-key)",
+        len(tasks),
+        table_key,
+        "1" if partition_col else "0",
+        len(null_check_cols),
+    )
 
     return tasks
 
@@ -243,9 +361,10 @@ def build_wave_validation_summary_sql(
 ) -> str:
     """Build a single SQL query that validates row counts for all tables in a wave.
 
-    This is an alternative to per-table checks — a single aggregated query
-    that returns one row per table with pass/fail status.  Useful for
-    generating a summary report rather than per-task failures.
+    This is an alternative to per-table PythonOperator checks — a single
+    aggregated query that returns one row per table with pass/fail status.
+    Useful for generating a summary report after all tables in a wave have
+    loaded.
 
     Args:
         manifests: List of manifests in the wave.
@@ -259,19 +378,19 @@ def build_wave_validation_summary_sql(
     union_parts = []
     for m in manifests:
         tgt = m.get("target", {})
-        project = tgt.get("project", "acme-analytics")
-        dataset = tgt.get("dataset")
-        table = tgt.get("table")
+        proj = tgt.get("project", "acme-analytics")
+        ds = tgt.get("dataset")
+        tbl = tgt.get("table")
         expected = get_expected_row_count(source_counts, m)
         if expected is None:
             continue
 
         union_parts.append(
-            f"  SELECT '{dataset}.{table}' AS table_name, "
+            f"  SELECT '{ds}.{tbl}' AS table_name, "
             f"{expected} AS expected_rows, "
             f"cnt AS actual_rows, "
             f"CASE WHEN cnt = {expected} THEN 'PASS' ELSE 'FAIL' END AS status "
-            f"FROM (SELECT COUNT(*) AS cnt FROM `{project}.{dataset}.{table}`)"
+            f"FROM (SELECT COUNT(*) AS cnt FROM `{proj}.{ds}.{tbl}`)"
         )
 
     if not union_parts:
