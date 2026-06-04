@@ -1,3 +1,6 @@
+# Manifest: raw.omniture_logs
+# Source: Hive TSV external table on acme-lake (60 STRING columns, no header)
+
 source:
   database: raw
   table: omniture_logs
@@ -9,7 +12,6 @@ source:
   format_options:
     delimiter: "\t"
     header: false
-    column_count: 60
 target:
   project: acme-analytics
   dataset: raw
@@ -23,9 +25,8 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: wave_3_large
 validation:
   watermark_col: date_ts
   null_check_cols:
   - col_2
-wave: wave_3_large
-migration_tier: critical

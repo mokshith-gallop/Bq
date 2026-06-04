@@ -1,10 +1,11 @@
+# Manifest: retail.dim_customer
+
 source:
   database: retail
   table: dim_customer
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_customer/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -16,10 +17,9 @@ transforms:
   - col: customer_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - customer_sk
   - customer_id
-wave: wave_1_small
-migration_tier: critical

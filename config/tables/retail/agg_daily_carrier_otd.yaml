@@ -1,3 +1,5 @@
+# Manifest: retail.agg_daily_carrier_otd
+
 source:
   database: retail
   table: agg_daily_carrier_otd
@@ -26,9 +28,8 @@ transforms:
   - col: in_transit
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: ship_date
   null_check_cols:
   - carrier
-wave: wave_1_small
-migration_tier: standard

@@ -1,3 +1,5 @@
+# Manifest: retail.bridge_customer_segment
+
 source:
   database: retail
   table: bridge_customer_segment
@@ -17,10 +19,9 @@ transforms:
   - col: customer_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: snapshot_date
   null_check_cols:
   - customer_sk
   - segment_id
-wave: wave_1_small
-migration_tier: standard

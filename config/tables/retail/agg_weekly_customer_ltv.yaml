@@ -1,3 +1,5 @@
+# Manifest: retail.agg_weekly_customer_ltv
+
 source:
   database: retail
   table: agg_weekly_customer_ltv
@@ -23,9 +25,8 @@ transforms:
   - col: days_since_last_order
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: week_start_date
   null_check_cols:
   - customer_sk
-wave: wave_1_small
-migration_tier: standard

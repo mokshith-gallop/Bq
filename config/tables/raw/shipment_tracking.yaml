@@ -1,3 +1,6 @@
+# Manifest: raw.shipment_tracking
+# Source: Hive CSV external table on acme-lake
+
 source:
   database: raw
   table: shipment_tracking
@@ -23,10 +26,9 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: wave_2_medium
 validation:
   watermark_col: date_ts
   null_check_cols:
   - tracking_no
   - invoice_no
-wave: wave_2_medium
-migration_tier: standard

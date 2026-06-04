@@ -1,33 +1,35 @@
 # Manifest: retail.inventory_realtime_snapshot
-# Source: retail.kudu_inventory_realtime (Kudu table, acme-analytics cluster)
-# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
-# Non-partitioned in BQ
+# Source: kudu_inventory_realtime — epoch ms BIGINT -> TIMESTAMP
+
 source:
   database: retail
   table: kudu_inventory_realtime
   cluster: acme-analytics
   format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_inventory_realtime/
-  partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: inventory_realtime_snapshot
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: on_hand, from: INT, to: INT64 }
-    - { col: allocated, from: INT, to: INT64 }
-    - { col: available, from: INT, to: INT64 }
+  - col: on_hand
+    from: INT
+    to: INT64
+  - col: allocated
+    from: INT
+    to: INT64
+  - col: available
+    from: INT
+    to: INT64
   kudu_epoch_conversion:
-    - { col: last_updated_ts, from_unit: millis }
-
+  - col: last_updated_ts
+    from_unit: millis
 wave: wave_1_small
-
 validation:
   watermark_col: null
-  null_check_cols: [warehouse_id, sku]
-migration_tier: standard
+  null_check_cols:
+  - warehouse_id
+  - sku

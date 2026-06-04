@@ -1,3 +1,8 @@
+# Manifest: raw.supplier_invoices
+# Source: Hive SequenceFile external table on acme-lake
+# Special handling: sc.sequenceFile() custom Hadoop InputFormat reader
+# Multi-column INT partition (feed_year/feed_month) -> generated column in BQ
+
 source:
   database: raw
   table: supplier_invoices
@@ -24,10 +29,9 @@ transforms:
     generated_column: true
   map_to_json: []
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - invoice_no
   - supplier_id
-wave: wave_1_small
-migration_tier: standard

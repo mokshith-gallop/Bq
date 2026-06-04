@@ -1,3 +1,7 @@
+# Manifest: raw.inventory_movements
+# Source: Hive Parquet external table on acme-lake
+# Multi-column INT partition (year/month/day) -> generated column in BQ
+
 source:
   database: raw
   table: inventory_movements
@@ -29,10 +33,9 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
   watermark_col: null
   null_check_cols:
   - movement_id
   - sku
-wave: wave_2_medium
-migration_tier: standard

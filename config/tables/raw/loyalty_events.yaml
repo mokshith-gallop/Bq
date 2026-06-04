@@ -1,3 +1,7 @@
+# Manifest: raw.loyalty_events
+# Source: Hive RegexSerDe external table on acme-lake
+# Special handling: spark.read.text() + regexp_extract() per column
+
 source:
   database: raw
   table: loyalty_events
@@ -29,10 +33,9 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: date_ts
   null_check_cols:
   - member_id
   - tx_id
-wave: wave_2_medium
-migration_tier: standard

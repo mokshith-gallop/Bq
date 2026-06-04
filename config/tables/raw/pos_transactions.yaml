@@ -1,3 +1,6 @@
+# Manifest: raw.pos_transactions
+# Source: Hive Parquet external table on acme-lake
+
 source:
   database: raw
   table: pos_transactions
@@ -25,10 +28,9 @@ transforms:
   - col: line_count
     from: INT
     to: INT64
+wave: wave_3_large
 validation:
   watermark_col: date_ts
   null_check_cols:
   - txn_id
   - invoice_no
-wave: wave_3_large
-migration_tier: critical

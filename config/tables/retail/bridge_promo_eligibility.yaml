@@ -1,3 +1,5 @@
+# Manifest: retail.bridge_promo_eligibility
+
 source:
   database: retail
   table: bridge_promo_eligibility
@@ -20,10 +22,9 @@ transforms:
   - col: promo_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: load_date
   null_check_cols:
   - customer_sk
   - promo_sk
-wave: wave_1_small
-migration_tier: standard

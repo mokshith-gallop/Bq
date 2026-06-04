@@ -1,3 +1,5 @@
+# Manifest: retail.fact_email_engagement
+
 source:
   database: retail
   table: fact_email_engagement
@@ -20,10 +22,9 @@ transforms:
   - col: user_sk
     from: BIGINT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: event_date
   null_check_cols:
   - send_id
   - campaign_sk
-wave: wave_2_medium
-migration_tier: standard

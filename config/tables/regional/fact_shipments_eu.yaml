@@ -1,3 +1,5 @@
+# Manifest: regional.fact_shipments_eu
+
 source:
   database: regional
   table: fact_shipments_eu
@@ -17,10 +19,9 @@ transforms:
   - col: sla_hours
     from: INT
     to: INT64
+wave: eu
 validation:
-  watermark_col: null
+  watermark_col: ship_date
   null_check_cols:
   - shipment_id
   - order_id
-wave: eu
-migration_tier: standard

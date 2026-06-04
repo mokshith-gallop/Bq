@@ -1,3 +1,6 @@
+# Manifest: regional.fact_eu_promotions
+# EU-specific promo redemption fact
+
 source:
   database: regional
   table: fact_eu_promotions
@@ -17,10 +20,9 @@ transforms:
   - col: redemption_id
     from: BIGINT
     to: INT64
+wave: eu
 validation:
-  watermark_col: null
+  watermark_col: redemption_date
   null_check_cols:
   - redemption_id
   - promo_code
-wave: eu
-migration_tier: standard

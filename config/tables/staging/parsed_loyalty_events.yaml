@@ -1,3 +1,6 @@
+# Manifest: staging.parsed_loyalty_events
+# MAP<STRING,STRING> meta -> JSON
+
 source:
   database: staging
   table: parsed_loyalty_events
@@ -24,10 +27,9 @@ transforms:
   - col: points
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
   watermark_col: date_ts
   null_check_cols:
   - member_id
   - tx_id
-wave: wave_2_medium
-migration_tier: standard

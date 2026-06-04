@@ -1,3 +1,8 @@
+# Manifest: retail.fact_payments
+# Multi-col partition: post_year/post_month INT + payment_method_partition STRING
+# Generated column: partition_month DATE AS (DATE(post_year, post_month, 1))
+# CRITICAL tier
+
 source:
   database: retail
   table: fact_payments
@@ -31,10 +36,9 @@ transforms:
   - col: payment_method_sk
     from: BIGINT
     to: INT64
+wave: wave_3_large
 validation:
   watermark_col: null
   null_check_cols:
   - payment_id
   - invoice_no
-wave: wave_3_large
-migration_tier: critical

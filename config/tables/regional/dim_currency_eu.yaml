@@ -1,10 +1,12 @@
+# Manifest: regional.dim_currency_eu
+# Non-partitioned static dimension
+
 source:
   database: regional
   table: dim_currency_eu
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/dim_currency_eu/
-  partition_cols: []
 target:
   project: acme-analytics-eu
   dataset: regional_eu
@@ -16,9 +18,8 @@ transforms:
   - col: minor_unit
     from: INT
     to: INT64
+wave: eu
 validation:
   watermark_col: null
   null_check_cols:
   - currency_code
-wave: eu
-migration_tier: standard

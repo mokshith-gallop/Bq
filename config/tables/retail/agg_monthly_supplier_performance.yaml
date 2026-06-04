@@ -1,3 +1,5 @@
+# Manifest: retail.agg_monthly_supplier_performance
+
 source:
   database: retail
   table: agg_monthly_supplier_performance
@@ -23,9 +25,8 @@ transforms:
   - col: units_received
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: month_start
   null_check_cols:
   - supplier_sk
-wave: wave_1_small
-migration_tier: standard

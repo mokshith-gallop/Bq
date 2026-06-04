@@ -1,10 +1,11 @@
+# Manifest: retail.dim_color
+
 source:
   database: retail
   table: dim_color
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_color/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -16,10 +17,9 @@ transforms:
   - col: color_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - color_sk
   - color_code
-wave: wave_1_small
-migration_tier: standard

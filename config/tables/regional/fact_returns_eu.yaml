@@ -1,3 +1,5 @@
+# Manifest: regional.fact_returns_eu
+
 source:
   database: regional
   table: fact_returns_eu
@@ -17,10 +19,9 @@ transforms:
   - col: return_id
     from: BIGINT
     to: INT64
+wave: eu
 validation:
-  watermark_col: null
+  watermark_col: return_date
   null_check_cols:
   - return_id
   - order_id
-wave: eu
-migration_tier: standard

@@ -1,3 +1,8 @@
+# Manifest: raw.mobile_events
+# Source: Hive JSON SerDe external table on acme-lake
+# MAP->JSON, STRUCT passthrough, ARRAY<STRUCT> passthrough
+# Generated column: partition_date DATE AS (PARSE_DATE("%Y%m%d", event_date))
+
 source:
   database: raw
   table: mobile_events
@@ -27,10 +32,9 @@ transforms:
   - col: hour_bucket
     from: TINYINT
     to: INT64
+wave: wave_3_large
 validation:
   watermark_col: event_date
   null_check_cols:
   - event_id
   - user_id
-wave: wave_3_large
-migration_tier: critical

@@ -1,10 +1,11 @@
+# Manifest: retail.bridge_product_supplier
+
 source:
   database: retail
   table: bridge_product_supplier
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_product_supplier/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -25,10 +26,9 @@ transforms:
   - col: moq
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - product_sk
   - supplier_sk
-wave: wave_1_small
-migration_tier: standard

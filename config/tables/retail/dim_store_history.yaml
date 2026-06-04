@@ -1,10 +1,11 @@
+# Manifest: retail.dim_store_history
+
 source:
   database: retail
   table: dim_store_history
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_store_history/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -25,10 +26,9 @@ transforms:
   - col: sq_ft
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - history_id
   - store_sk
-wave: wave_1_small
-migration_tier: standard

@@ -1,32 +1,33 @@
 # Manifest: retail.acid_loyalty_points_ledger
+# Hive ACID/ORC — live earn/redeem ledger
+
 source:
   database: retail
   table: acid_loyalty_points_ledger
   cluster: acme-analytics
   format: orc
   gcs_path: gs://acme-migration-staging-us/retail/acid_loyalty_points_ledger/
-  partition_cols: []
-  format_options:
-    acid_compaction: true
-    transactional: true
-
+  acid_compaction: true
 target:
   project: acme-analytics
   dataset: retail
   table: acid_loyalty_points_ledger
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
-  acid_compaction: true
   type_widening:
-    - { col: entry_id, from: BIGINT, to: INT64 }
-    - { col: points_delta, from: INT, to: INT64 }
-    - { col: running_balance, from: INT, to: INT64 }
-
+  - col: entry_id
+    from: BIGINT
+    to: INT64
+  - col: points_delta
+    from: INT
+    to: INT64
+  - col: running_balance
+    from: INT
+    to: INT64
+wave: wave_3_large
 validation:
   watermark_col: null
-  null_check_cols: [entry_id, member_id]
-
-wave: wave_3_large
-migration_tier: standard
+  null_check_cols:
+  - entry_id
+  - member_id

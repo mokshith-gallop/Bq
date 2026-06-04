@@ -1,3 +1,5 @@
+# Manifest: retail.fact_chat_interactions
+
 source:
   database: retail
   table: fact_chat_interactions
@@ -29,10 +31,9 @@ transforms:
   - col: csat_score
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: start_date
   null_check_cols:
   - chat_id
   - customer_sk
-wave: wave_2_medium
-migration_tier: standard

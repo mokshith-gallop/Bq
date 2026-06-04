@@ -1,3 +1,6 @@
+# Manifest: regional.dim_gdpr_consent
+# GDPR compliance-critical: granted BOOLEAN must not be NULL
+
 source:
   database: regional
   table: dim_gdpr_consent
@@ -14,11 +17,10 @@ transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
+wave: eu
 validation:
-  watermark_col: null
+  watermark_col: consent_date
   null_check_cols:
   - consent_id
   - customer_id
   - granted
-wave: eu
-migration_tier: critical

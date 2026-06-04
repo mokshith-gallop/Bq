@@ -1,3 +1,6 @@
+# Manifest: raw.customer_complaints
+# Source: Hive TSV external table on acme-lake
+
 source:
   database: raw
   table: customer_complaints
@@ -25,10 +28,9 @@ transforms:
   - col: csat_score
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: date_ts
   null_check_cols:
   - complaint_id
   - customer_id
-wave: wave_1_small
-migration_tier: standard

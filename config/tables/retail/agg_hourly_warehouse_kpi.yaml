@@ -1,3 +1,6 @@
+# Manifest: retail.agg_hourly_warehouse_kpi
+# Partitioned by snapshot_hour STRING — no date partition in BQ
+
 source:
   database: retail
   table: agg_hourly_warehouse_kpi
@@ -29,9 +32,8 @@ transforms:
   - col: backlog_units
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - warehouse_sk
-wave: wave_1_small
-migration_tier: standard

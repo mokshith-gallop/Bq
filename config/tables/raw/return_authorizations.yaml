@@ -1,3 +1,6 @@
+# Manifest: raw.return_authorizations
+# Source: Hive TSV external table on acme-lake
+
 source:
   database: raw
   table: return_authorizations
@@ -25,10 +28,9 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: date_ts
   null_check_cols:
   - rma_id
   - invoice_no
-wave: wave_1_small
-migration_tier: standard

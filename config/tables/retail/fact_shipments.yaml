@@ -1,3 +1,7 @@
+# Manifest: retail.fact_shipments
+# Multi-col partition with generated column + ARRAY<STRUCT> tracking_events passthrough
+# CRITICAL tier
+
 source:
   database: retail
   table: fact_shipments
@@ -33,10 +37,9 @@ transforms:
   - col: sla_hours
     from: INT
     to: INT64
+wave: wave_3_large
 validation:
   watermark_col: null
   null_check_cols:
   - shipment_id
   - invoice_no
-wave: wave_3_large
-migration_tier: critical

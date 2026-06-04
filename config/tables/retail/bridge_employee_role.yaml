@@ -1,10 +1,11 @@
+# Manifest: retail.bridge_employee_role
+
 source:
   database: retail
   table: bridge_employee_role
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/bridge_employee_role/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -16,10 +17,9 @@ transforms:
   - col: employee_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - employee_sk
   - role
-wave: wave_1_small
-migration_tier: standard

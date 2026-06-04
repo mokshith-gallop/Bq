@@ -1,10 +1,11 @@
+# Manifest: retail.dim_product
+
 source:
   database: retail
   table: dim_product
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_product/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -16,10 +17,9 @@ transforms:
   - col: product_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - product_sk
   - stock_code
-wave: wave_1_small
-migration_tier: critical

@@ -1,3 +1,6 @@
+# Manifest: retail.dim_employee_history
+# Partitioned by eff_from_year INT — no date partition in BQ
+
 source:
   database: retail
   table: dim_employee_history
@@ -26,10 +29,9 @@ transforms:
   - col: eff_from_year
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - history_id
   - employee_sk
-wave: wave_1_small
-migration_tier: standard

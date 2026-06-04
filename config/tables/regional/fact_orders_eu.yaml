@@ -1,3 +1,7 @@
+# Manifest: regional.fact_orders_eu
+# Multi-col partition with generated column
+# CRITICAL tier
+
 source:
   database: regional
   table: fact_orders_eu
@@ -25,10 +29,9 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: eu
 validation:
   watermark_col: null
   null_check_cols:
   - order_id
   - customer_id
-wave: eu
-migration_tier: critical

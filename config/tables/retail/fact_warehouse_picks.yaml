@@ -1,3 +1,5 @@
+# Manifest: retail.fact_warehouse_picks
+
 source:
   database: retail
   table: fact_warehouse_picks
@@ -30,10 +32,9 @@ transforms:
   - col: duration_ms
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: pick_date
   null_check_cols:
   - pick_id
   - sku
-wave: wave_2_medium
-migration_tier: standard

@@ -1,3 +1,5 @@
+# Manifest: retail.fact_sales
+
 source:
   database: retail
   table: fact_sales
@@ -23,11 +25,10 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: wave_3_large
 validation:
-  watermark_col: null
+  watermark_col: sale_date
   null_check_cols:
   - invoice_no
   - customer_sk
   - product_sk
-wave: wave_3_large
-migration_tier: critical

@@ -1,3 +1,5 @@
+# Manifest: staging.geocoded_addresses
+
 source:
   database: staging
   table: geocoded_addresses
@@ -14,9 +16,8 @@ transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: load_date
   null_check_cols:
   - raw_addr_hash
-wave: wave_1_small
-migration_tier: standard

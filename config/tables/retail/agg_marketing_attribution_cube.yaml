@@ -1,3 +1,5 @@
+# Manifest: retail.agg_marketing_attribution_cube
+
 source:
   database: retail
   table: agg_marketing_attribution_cube
@@ -23,9 +25,7 @@ transforms:
   - col: grouping_id
     from: INT
     to: INT64
-validation:
-  watermark_col: null
-  null_check_cols:
-  - channel
 wave: wave_1_small
-migration_tier: standard
+validation:
+  watermark_col: period_date
+  null_check_cols: []

@@ -1,3 +1,6 @@
+# Manifest: regional.events_eu
+# event_date STRING partition -> partition_date DATE (Spark populates explicitly)
+
 source:
   database: regional
   table: events_eu
@@ -19,10 +22,9 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: eu
 validation:
   watermark_col: event_date
   null_check_cols:
   - event_id
   - user_id
-wave: eu
-migration_tier: standard

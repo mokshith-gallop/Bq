@@ -1,32 +1,30 @@
 # Manifest: retail.session_state_snapshot
-# Source: retail.kudu_session_state (Kudu table, acme-analytics cluster)
-# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
-# Non-partitioned in BQ
+# Source: kudu_session_state — epoch ms BIGINT -> TIMESTAMP
+
 source:
   database: retail
   table: kudu_session_state
   cluster: acme-analytics
   format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_session_state/
-  partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: session_state_snapshot
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening:
-    - { col: cart_items, from: INT, to: INT64 }
+  - col: cart_items
+    from: INT
+    to: INT64
   kudu_epoch_conversion:
-    - { col: started_ts, from_unit: millis }
-    - { col: last_event_ts, from_unit: millis }
-
+  - col: started_ts
+    from_unit: millis
+  - col: last_event_ts
+    from_unit: millis
 wave: wave_1_small
-
 validation:
   watermark_col: null
-  null_check_cols: [session_id]
-migration_tier: standard
+  null_check_cols:
+  - session_id

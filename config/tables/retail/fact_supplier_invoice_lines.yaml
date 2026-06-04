@@ -1,3 +1,6 @@
+# Manifest: retail.fact_supplier_invoice_lines
+# Multi-col partition: invoice_year/invoice_month -> generated column
+
 source:
   database: retail
   table: fact_supplier_invoice_lines
@@ -30,10 +33,9 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
   watermark_col: null
   null_check_cols:
   - invoice_line_id
   - invoice_no
-wave: wave_2_medium
-migration_tier: standard

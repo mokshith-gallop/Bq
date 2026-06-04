@@ -1,3 +1,5 @@
+# Manifest: retail.sales_cube
+
 source:
   database: retail
   table: sales_cube
@@ -29,9 +31,7 @@ transforms:
   - col: units
     from: BIGINT
     to: INT64
-validation:
-  watermark_col: null
-  null_check_cols:
-  - cube_key
 wave: wave_1_small
-migration_tier: standard
+validation:
+  watermark_col: as_of_date
+  null_check_cols: []

@@ -1,10 +1,12 @@
+# Manifest: regional.dim_product_eu_catalog
+# Non-partitioned, ARRAY<STRING> eu_compliance_flags passthrough
+
 source:
   database: regional
   table: dim_product_eu_catalog
   cluster: acme-edge
   format: parquet
   gcs_path: gs://acme-migration-staging-eu/regional/dim_product_eu_catalog/
-  partition_cols: []
 target:
   project: acme-analytics-eu
   dataset: regional_eu
@@ -13,10 +15,8 @@ transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
+wave: eu
 validation:
   watermark_col: null
   null_check_cols:
   - sku
-  - eu_sku
-wave: eu
-migration_tier: standard

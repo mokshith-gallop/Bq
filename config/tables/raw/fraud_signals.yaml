@@ -1,3 +1,6 @@
+# Manifest: raw.fraud_signals
+# Source: Hive Avro external table on acme-lake (schema evolves quarterly)
+
 source:
   database: raw
   table: fraud_signals
@@ -21,10 +24,9 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: signal_date
   null_check_cols:
   - customer_id
   - signal_type
-wave: wave_1_small
-migration_tier: standard

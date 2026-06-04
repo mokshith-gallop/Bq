@@ -1,31 +1,28 @@
 # Manifest: retail.promo_eligibility_snapshot
-# Source: retail.kudu_promo_eligibility (Kudu table, acme-analytics cluster)
-# Kudu batch analytics snapshot — epoch ms BIGINT → TIMESTAMP conversion
-# Non-partitioned in BQ
+# Source: kudu_promo_eligibility — epoch ms BIGINT -> TIMESTAMP
+
 source:
   database: retail
   table: kudu_promo_eligibility
   cluster: acme-analytics
   format: kudu
   gcs_path: gs://acme-migration-staging-us/retail/kudu_promo_eligibility/
-  partition_cols: []
-
 target:
   project: acme-analytics
   dataset: retail
   table: promo_eligibility_snapshot
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
   type_widening: []
   kudu_epoch_conversion:
-    - { col: valid_from_ts, from_unit: millis }
-    - { col: valid_to_ts, from_unit: millis }
-
+  - col: valid_from_ts
+    from_unit: millis
+  - col: valid_to_ts
+    from_unit: millis
 wave: wave_1_small
-
 validation:
   watermark_col: null
-  null_check_cols: [customer_id, promo_id]
-migration_tier: standard
+  null_check_cols:
+  - customer_id
+  - promo_id

@@ -1,3 +1,7 @@
+# Manifest: retail.fact_inventory_movements
+# Multi-col partition: year/month/day INT + region STRING -> generated column
+# CRITICAL tier
+
 source:
   database: retail
   table: fact_inventory_movements
@@ -39,10 +43,9 @@ transforms:
   - col: operator_sk
     from: BIGINT
     to: INT64
+wave: wave_3_large
 validation:
   watermark_col: null
   null_check_cols:
   - movement_id
   - sku
-wave: wave_3_large
-migration_tier: critical

@@ -1,3 +1,5 @@
+# Manifest: retail.fact_loyalty_events
+
 source:
   database: retail
   table: fact_loyalty_events
@@ -25,10 +27,9 @@ transforms:
   - col: store_sk
     from: BIGINT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: event_date
   null_check_cols:
   - event_id
   - member_id
-wave: wave_2_medium
-migration_tier: standard

@@ -1,3 +1,8 @@
+# Manifest: regional.fact_mobile_app_events
+# MAP->JSON properties; STRUCT device passthrough
+# Generated column: partition_date DATE AS (PARSE_DATE("%Y%m%d", event_date))
+# CRITICAL tier
+
 source:
   database: regional
   table: fact_mobile_app_events
@@ -22,10 +27,9 @@ transforms:
   - source_col: properties
     target_col: properties
   type_widening: []
+wave: eu
 validation:
   watermark_col: event_date
   null_check_cols:
   - event_id
   - user_id
-wave: eu
-migration_tier: critical

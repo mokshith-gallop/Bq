@@ -1,3 +1,5 @@
+# Manifest: retail.fact_customer_complaints
+
 source:
   database: retail
   table: fact_customer_complaints
@@ -20,10 +22,9 @@ transforms:
   - col: csat_score
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: created_date
   null_check_cols:
   - complaint_id
   - customer_sk
-wave: wave_1_small
-migration_tier: standard

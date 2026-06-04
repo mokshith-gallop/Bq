@@ -1,3 +1,5 @@
+# Manifest: retail.agg_returns_by_reason_monthly
+
 source:
   database: retail
   table: agg_returns_by_reason_monthly
@@ -20,9 +22,8 @@ transforms:
   - col: return_units
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: month_start
   null_check_cols:
   - reason_code
-wave: wave_1_small
-migration_tier: standard

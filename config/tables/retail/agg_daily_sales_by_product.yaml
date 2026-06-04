@@ -1,3 +1,5 @@
+# Manifest: retail.agg_daily_sales_by_product
+
 source:
   database: retail
   table: agg_daily_sales_by_product
@@ -26,9 +28,8 @@ transforms:
   - col: net_units
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: sale_date
   null_check_cols:
   - product_sk
-wave: wave_1_small
-migration_tier: standard

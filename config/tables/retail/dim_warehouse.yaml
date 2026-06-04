@@ -1,10 +1,11 @@
+# Manifest: retail.dim_warehouse
+
 source:
   database: retail
   table: dim_warehouse
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_warehouse/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -19,10 +20,9 @@ transforms:
   - col: capacity_units
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - warehouse_sk
   - warehouse_id
-wave: wave_1_small
-migration_tier: standard

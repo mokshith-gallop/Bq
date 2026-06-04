@@ -1,31 +1,31 @@
 # Manifest: retail.returns_ledger
+# Hive ACID/ORC — requires major compaction before DistCp
+# CRITICAL tier
+
 source:
   database: retail
   table: returns_ledger
   cluster: acme-analytics
   format: orc
   gcs_path: gs://acme-migration-staging-us/retail/returns_ledger/
-  partition_cols: []
-  format_options:
-    acid_compaction: true
-    transactional: true
-
+  acid_compaction: true
 target:
   project: acme-analytics
   dataset: retail
   table: returns_ledger
-
 transforms:
   partition_key_conversion: null
   map_to_json: []
-  acid_compaction: true  # Run ALTER TABLE COMPACT 'major' before DistCp
   type_widening:
-    - { col: return_id, from: BIGINT, to: INT64 }
-    - { col: customer_sk, from: BIGINT, to: INT64 }
-
+  - col: return_id
+    from: BIGINT
+    to: INT64
+  - col: customer_sk
+    from: BIGINT
+    to: INT64
+wave: wave_3_large
 validation:
   watermark_col: null
-  null_check_cols: [return_id, invoice_no]
-
-wave: wave_3_large
-migration_tier: critical
+  null_check_cols:
+  - return_id
+  - invoice_no

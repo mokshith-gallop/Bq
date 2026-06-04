@@ -1,10 +1,11 @@
+# Manifest: retail.dim_currency
+
 source:
   database: retail
   table: dim_currency
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_currency/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -16,9 +17,8 @@ transforms:
   - col: minor_unit
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - currency_code
-wave: wave_1_small
-migration_tier: standard

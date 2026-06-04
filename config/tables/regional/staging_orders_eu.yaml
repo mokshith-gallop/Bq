@@ -1,3 +1,6 @@
+# Manifest: regional.staging_orders_eu
+# Sqoop landing for EU order CDC
+
 source:
   database: regional
   table: staging_orders_eu
@@ -17,10 +20,9 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: eu
 validation:
-  watermark_col: null
+  watermark_col: snapshot_date
   null_check_cols:
   - order_id
   - customer_id
-wave: eu
-migration_tier: standard

@@ -1,3 +1,7 @@
+# Manifest: raw.product_catalog_feed
+# Source: Hive RCFile external table on acme-lake
+# Special handling: spark.read.format("hive") via HiveContext with SerDe JARs
+
 source:
   database: raw
   table: product_catalog_feed
@@ -23,10 +27,9 @@ transforms:
   - source_col: metadata
     target_col: metadata
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: feed_date
   null_check_cols:
   - sku
   - supplier_id
-wave: wave_1_small
-migration_tier: standard

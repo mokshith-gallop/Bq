@@ -1,3 +1,5 @@
+# Manifest: retail.fact_fraud_decisions
+
 source:
   database: retail
   table: fact_fraud_decisions
@@ -20,10 +22,9 @@ transforms:
   - col: customer_sk
     from: BIGINT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: decision_date
   null_check_cols:
   - txn_id
   - customer_sk
-wave: wave_2_medium
-migration_tier: standard

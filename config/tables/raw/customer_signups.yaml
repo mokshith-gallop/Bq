@@ -1,3 +1,6 @@
+# Manifest: raw.customer_signups
+# Source: Hive Avro external table on acme-lake (schema-evolved)
+
 source:
   database: raw
   table: customer_signups
@@ -21,9 +24,8 @@ transforms:
     generated_column: false
   map_to_json: []
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: signup_date
   null_check_cols:
   - customer_id
-wave: wave_1_small
-migration_tier: standard

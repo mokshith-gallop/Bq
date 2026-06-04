@@ -1,3 +1,6 @@
+# Manifest: raw.sales_retail
+# Source: Hive CSV external table on acme-lake cluster
+
 source:
   database: raw
   table: sales_retail
@@ -9,7 +12,7 @@ source:
   format_options:
     delimiter: ','
     header: true
-    null_format: ''
+    null_value: ''
 target:
   project: acme-analytics
   dataset: raw
@@ -26,9 +29,8 @@ transforms:
   - col: quantity
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
   watermark_col: date_ts
   null_check_cols:
   - invoice_no
-wave: wave_3_large
-migration_tier: critical

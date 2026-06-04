@@ -1,3 +1,5 @@
+# Manifest: retail.fact_inventory_snapshot
+
 source:
   database: retail
   table: fact_inventory_snapshot
@@ -29,10 +31,9 @@ transforms:
   - col: available_units
     from: INT
     to: INT64
+wave: wave_2_medium
 validation:
-  watermark_col: null
+  watermark_col: snapshot_date
   null_check_cols:
   - sku
   - warehouse_sk
-wave: wave_2_medium
-migration_tier: standard

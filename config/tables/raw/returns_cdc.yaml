@@ -1,3 +1,6 @@
+# Manifest: raw.returns_cdc
+# Source: Hive CSV external table on acme-lake
+
 source:
   database: raw
   table: returns_cdc
@@ -9,7 +12,7 @@ source:
   format_options:
     delimiter: ','
     header: true
-    null_format: ''
+    null_value: ''
 target:
   project: acme-analytics
   dataset: raw
@@ -24,10 +27,9 @@ transforms:
   - col: customer_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
-  watermark_col: null
+  watermark_col: snapshot_date
   null_check_cols:
   - return_id
   - invoice_no
-wave: wave_1_small
-migration_tier: standard

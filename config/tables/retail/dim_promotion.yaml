@@ -1,10 +1,11 @@
+# Manifest: retail.dim_promotion
+
 source:
   database: retail
   table: dim_promotion
   cluster: acme-analytics
   format: parquet
   gcs_path: gs://acme-migration-staging-us/retail/dim_promotion/
-  partition_cols: []
 target:
   project: acme-analytics
   dataset: retail
@@ -18,10 +19,9 @@ transforms:
   - col: promo_sk
     from: BIGINT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: null
   null_check_cols:
   - promo_sk
   - promo_id
-wave: wave_1_small
-migration_tier: standard

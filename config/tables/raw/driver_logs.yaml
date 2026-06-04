@@ -1,3 +1,7 @@
+# Manifest: raw.driver_logs
+# Source: Hive JSON SerDe external table on acme-lake
+# MAP<STRING,STRING> extras -> JSON; STRUCT gps passthrough
+
 source:
   database: raw
   table: driver_logs
@@ -23,9 +27,8 @@ transforms:
   - source_col: extras
     target_col: extras
   type_widening: []
+wave: wave_1_small
 validation:
   watermark_col: date_ts
   null_check_cols:
   - driver_id
-wave: wave_1_small
-migration_tier: standard

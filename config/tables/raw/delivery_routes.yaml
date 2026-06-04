@@ -1,3 +1,6 @@
+# Manifest: raw.delivery_routes
+# Source: Hive CSV external table on acme-lake
+
 source:
   database: raw
   table: delivery_routes
@@ -28,10 +31,9 @@ transforms:
   - col: actual_stops
     from: INT
     to: INT64
+wave: wave_1_small
 validation:
   watermark_col: date_ts
   null_check_cols:
   - route_id
   - driver_id
-wave: wave_1_small
-migration_tier: standard
