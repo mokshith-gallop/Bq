@@ -224,19 +224,38 @@ def _read_textfile_tsv(spark: SparkSession, manifest: Dict[str, Any]) -> DataFra
     """Read tab-separated TEXTFILE tables (typically no header).
 
     Used for omniture_logs: 60 STRING columns, no header, tab-separated.
+    When ``header=false`` and ``column_count`` is specified, auto-generated
+    column names ``_c0 .. _cN`` are renamed to ``col_1 .. col_N`` to match
+    the BigQuery target schema.
     """
     path = _gcs_path(manifest)
     opts = manifest["source"].get("format_options", {})
-    header = str(opts.get("header", False)).lower()
+    has_header = opts.get("header", False)
+    column_count = opts.get("column_count", 0)
 
-    logger.info("textfile_tsv reader: path=%s, header=%s", path, header)
-    return (
+    logger.info(
+        "textfile_tsv reader: path=%s, header=%s, column_count=%d",
+        path, has_header, column_count,
+    )
+    df = (
         spark.read
-        .option("header", header)
+        .option("header", str(has_header).lower())
         .option("inferSchema", "false")
         .option("sep", "\t")
         .csv(path)
     )
+
+    # When no header, Spark generates _c0, _c1, ... — rename to col_1, col_2, ...
+    # to match the BigQuery target schema (e.g. omniture_logs has col_1..col_60)
+    if not has_header and column_count > 0:
+        for i in range(min(column_count, len(df.columns))):
+            df = df.withColumnRenamed(f"_c{i}", f"col_{i + 1}")
+        logger.info(
+            "Renamed %d columns from _c0..._c%d to col_1...col_%d",
+            column_count, column_count - 1, column_count,
+        )
+
+    return df
 
 
 # ---------------------------------------------------------------------------

@@ -12,6 +12,7 @@ source:
   format_options:
     delimiter: "\t"
     header: false
+    column_count: 60
 target:
   project: acme-analytics
   dataset: raw
@@ -26,6 +27,7 @@ transforms:
   map_to_json: []
   type_widening: []
 wave: wave_3_large
+migration_tier: critical
 validation:
   watermark_col: date_ts
   null_check_cols:
