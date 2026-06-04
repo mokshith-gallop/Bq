@@ -40,7 +40,7 @@ from airflow.providers.google.cloud.operators.bigquery import (
     BigQueryInsertJobOperator,
 )
 from airflow.providers.google.cloud.operators.dataproc import (
-    DataprocSubmitJobOperator,
+    DataprocCreateBatchOperator,
 )
 from airflow.utils.task_group import TaskGroup
 from airflow.utils.trigger_rule import TriggerRule
@@ -521,7 +521,7 @@ with DAG(
         Create a TaskGroup for a loading wave.
 
         Each table gets:
-          1. A DataprocSubmitJobOperator to run bulk_load.py
+          1. A DataprocCreateBatchOperator to run bulk_load.py
           2. Inline validation tasks (row count, null key checks)
 
         All load tasks within a wave run concurrently, controlled by the
@@ -547,9 +547,11 @@ with DAG(
                     watermark_ts=watermark_ts,
                 )
 
-                load_task = DataprocSubmitJobOperator(
+                batch_id = f"bulk-load-{db}-{tbl}-{{{{ ds_nodash }}}}"
+                load_task = DataprocCreateBatchOperator(
                     task_id=f"load__{db}__{tbl}",
-                    job=job_spec,
+                    batch=job_spec,
+                    batch_id=batch_id,
                     project_id=project,
                     region=region,
                     gcp_conn_id=GCP_CONN_ID,
