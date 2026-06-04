@@ -1,0 +1,34 @@
+# Manifest: raw.return_authorizations
+source:
+  database: raw
+  table: return_authorizations
+  cluster: acme-lake
+  format: textfile_csv
+  gcs_path: gs://acme-migration-staging-us/raw/return_authorizations/
+  partition_cols: [date_ts]
+  format_options:
+    delimiter: "\t"
+    header: false
+
+target:
+  project: acme-analytics
+  dataset: raw
+  table: return_authorizations
+
+transforms:
+  partition_key_conversion:
+    source_col: date_ts
+    target_col: partition_date
+    parse_format: "%Y%m%d"
+    parse_fn: PARSE_DATE
+    generated_column: false
+  map_to_json: []
+  type_widening:
+    - { col: quantity, from: INT, to: INT64 }
+
+validation:
+  watermark_col: date_ts
+  null_check_cols: [rma_id, invoice_no]
+
+wave: wave_1_small
+migration_tier: standard

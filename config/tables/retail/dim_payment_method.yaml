@@ -1,0 +1,27 @@
+# Manifest: retail.dim_payment_method
+source:
+  database: retail
+  table: dim_payment_method
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/dim_payment_method/
+  partition_cols: []
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: dim_payment_method
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: payment_method_sk, from: BIGINT, to: INT64 }
+    - { col: settlement_days, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [payment_method_sk, method_code]
+
+wave: wave_1_small
+migration_tier: standard

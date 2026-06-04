@@ -1,0 +1,30 @@
+# Manifest: retail.fact_returns
+source:
+  database: retail
+  table: fact_returns
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/fact_returns/
+  partition_cols: [return_date]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: fact_returns
+
+transforms:
+  partition_key_conversion: null  # return_date is native DATE — no conversion
+  map_to_json: []
+  type_widening:
+    - { col: return_id, from: BIGINT, to: INT64 }
+    - { col: customer_sk, from: BIGINT, to: INT64 }
+    - { col: product_sk, from: BIGINT, to: INT64 }
+    - { col: quantity, from: INT, to: INT64 }
+    - { col: store_sk, from: BIGINT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [return_id, invoice_no]
+
+wave: wave_2_medium
+migration_tier: critical

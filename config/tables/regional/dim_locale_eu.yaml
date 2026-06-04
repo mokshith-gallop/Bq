@@ -1,0 +1,25 @@
+# Manifest: regional.dim_locale_eu
+# Source: Hive Parquet managed table on acme-edge cluster
+# Non-partitioned static dimension
+source:
+  database: regional
+  table: dim_locale_eu
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/dim_locale_eu/
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: dim_locale_eu
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening: []
+
+wave: eu
+
+validation:
+  watermark_col: null
+  null_check_cols: [locale_code]

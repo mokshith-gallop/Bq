@@ -1,0 +1,32 @@
+# Manifest: raw.pos_transactions
+source:
+  database: raw
+  table: pos_transactions
+  cluster: acme-lake
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/raw/pos_transactions/
+  partition_cols: [date_ts]
+
+target:
+  project: acme-analytics
+  dataset: raw
+  table: pos_transactions
+
+transforms:
+  partition_key_conversion:
+    source_col: date_ts
+    target_col: partition_date
+    parse_format: "%Y%m%d"
+    parse_fn: PARSE_DATE
+    generated_column: false
+  map_to_json: []
+  type_widening:
+    - { col: txn_id, from: BIGINT, to: INT64 }
+    - { col: line_count, from: INT, to: INT64 }
+
+validation:
+  watermark_col: date_ts
+  null_check_cols: [txn_id, invoice_no]
+
+wave: wave_3_large
+migration_tier: critical

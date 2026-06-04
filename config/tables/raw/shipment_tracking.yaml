@@ -1,0 +1,33 @@
+# Manifest: raw.shipment_tracking
+source:
+  database: raw
+  table: shipment_tracking
+  cluster: acme-lake
+  format: textfile_csv
+  gcs_path: gs://acme-migration-staging-us/raw/shipment_tracking/
+  partition_cols: [date_ts, carrier_partition]
+  format_options:
+    delimiter: ","
+    header: true
+
+target:
+  project: acme-analytics
+  dataset: raw
+  table: shipment_tracking
+
+transforms:
+  partition_key_conversion:
+    source_col: date_ts
+    target_col: partition_date
+    parse_format: "%Y%m%d"
+    parse_fn: PARSE_DATE
+    generated_column: false
+  map_to_json: []
+  type_widening: []
+
+validation:
+  watermark_col: date_ts
+  null_check_cols: [tracking_no, invoice_no]
+
+wave: wave_2_medium
+migration_tier: standard

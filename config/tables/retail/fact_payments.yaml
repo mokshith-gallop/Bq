@@ -1,0 +1,32 @@
+# Manifest: retail.fact_payments
+source:
+  database: retail
+  table: fact_payments
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/fact_payments/
+  partition_cols: [post_year, post_month, payment_method_partition]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: fact_payments
+
+transforms:
+  partition_key_conversion:
+    source_cols: [post_year, post_month]
+    target_col: partition_month
+    parse_fn: DATE
+    generated_column: true  # BQ DDL: partition_month DATE AS (DATE(post_year, post_month, 1))
+  map_to_json: []
+  type_widening:
+    - { col: payment_id, from: BIGINT, to: INT64 }
+    - { col: customer_sk, from: BIGINT, to: INT64 }
+    - { col: payment_method_sk, from: BIGINT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [payment_id, invoice_no]
+
+wave: wave_3_large
+migration_tier: critical

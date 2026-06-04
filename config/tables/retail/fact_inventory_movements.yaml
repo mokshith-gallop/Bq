@@ -1,0 +1,34 @@
+# Manifest: retail.fact_inventory_movements
+source:
+  database: retail
+  table: fact_inventory_movements
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/fact_inventory_movements/
+  partition_cols: [year, month, day, region]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: fact_inventory_movements
+
+transforms:
+  partition_key_conversion:
+    source_cols: [year, month, day]
+    target_col: partition_date
+    parse_fn: DATE
+    generated_column: true  # BQ DDL: partition_date DATE AS (DATE(year, month, day))
+  map_to_json: []
+  type_widening:
+    - { col: movement_id, from: BIGINT, to: INT64 }
+    - { col: warehouse_sk, from: BIGINT, to: INT64 }
+    - { col: store_sk, from: BIGINT, to: INT64 }
+    - { col: quantity, from: INT, to: INT64 }
+    - { col: operator_sk, from: BIGINT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [movement_id, sku]
+
+wave: wave_3_large
+migration_tier: critical

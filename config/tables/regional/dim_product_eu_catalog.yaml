@@ -1,0 +1,27 @@
+# Manifest: regional.dim_product_eu_catalog
+# Source: Hive Parquet managed table on acme-edge cluster
+# Non-partitioned, ARRAY<STRING> eu_compliance_flags passthrough
+source:
+  database: regional
+  table: dim_product_eu_catalog
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/dim_product_eu_catalog/
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: dim_product_eu_catalog
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening: []
+  complex_types:
+    - { col: eu_compliance_flags, type: "ARRAY<STRING>", action: passthrough }
+
+wave: eu
+
+validation:
+  watermark_col: null
+  null_check_cols: [sku]

@@ -1,0 +1,30 @@
+# Manifest: retail.agg_hourly_warehouse_kpi
+source:
+  database: retail
+  table: agg_hourly_warehouse_kpi
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/agg_hourly_warehouse_kpi/
+  partition_cols: [snapshot_hour]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: agg_hourly_warehouse_kpi
+
+transforms:
+  partition_key_conversion: null  # snapshot_hour STRING kept as-is, no BQ partition
+  map_to_json: []
+  type_widening:
+    - { col: warehouse_sk, from: BIGINT, to: INT64 }
+    - { col: units_in, from: INT, to: INT64 }
+    - { col: units_picked, from: INT, to: INT64 }
+    - { col: units_shipped, from: INT, to: INT64 }
+    - { col: backlog_units, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [warehouse_sk]
+
+wave: wave_1_small
+migration_tier: standard

@@ -1,0 +1,27 @@
+# Manifest: retail.agg_returns_by_reason_monthly
+source:
+  database: retail
+  table: agg_returns_by_reason_monthly
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/agg_returns_by_reason_monthly/
+  partition_cols: [month_start]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: agg_returns_by_reason_monthly
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: return_count, from: BIGINT, to: INT64 }
+    - { col: return_units, from: BIGINT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [reason_code]
+
+wave: wave_1_small
+migration_tier: standard

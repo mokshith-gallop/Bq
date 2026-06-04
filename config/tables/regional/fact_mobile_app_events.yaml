@@ -1,0 +1,39 @@
+# Manifest: regional.fact_mobile_app_events
+# Source: Hive Parquet managed table on acme-edge cluster
+# MAP<STRING,STRING> properties → JSON
+# STRUCT device passthrough
+# Multi-partition: event_date STRING + platform_partition STRING
+# Generated column in BQ: partition_date DATE AS (PARSE_DATE('%Y%m%d', event_date))
+# CRITICAL tier
+source:
+  database: regional
+  table: fact_mobile_app_events
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/fact_mobile_app_events/
+  partition_cols: [event_date, platform_partition]
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: fact_mobile_app_events
+
+transforms:
+  partition_key_conversion:
+    source_col: event_date
+    target_col: partition_date
+    parse_format: "%Y%m%d"
+    parse_fn: PARSE_DATE
+    generated_column: true
+  map_to_json:
+    - { source_col: properties, target_col: properties }
+  type_widening: []
+  complex_types:
+    - { col: device, type: "STRUCT<platform:STRING, model:STRING, os_version:STRING>", action: passthrough }
+
+wave: eu
+migration_tier: critical
+
+validation:
+  watermark_col: event_date
+  null_check_cols: [event_id, user_id]

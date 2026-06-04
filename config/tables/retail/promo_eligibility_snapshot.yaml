@@ -1,0 +1,27 @@
+# Manifest: retail.promo_eligibility_snapshot
+# Source: retail.kudu_promo_eligibility (Kudu table on acme-analytics cluster)
+# Kudu batch analytics snapshot — exported as Parquet to GCS
+# Epoch ms conversion: valid_from_ts, valid_to_ts BIGINT → TIMESTAMP
+source:
+  database: retail
+  table: kudu_promo_eligibility
+  cluster: acme-analytics
+  format: kudu_snapshot
+  gcs_path: gs://acme-migration-staging-us/retail/kudu_promo_eligibility/
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: promo_eligibility_snapshot
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening: []
+  kudu_epoch_cols: [valid_from_ts, valid_to_ts]
+
+wave: wave_1_small
+
+validation:
+  watermark_col: null
+  null_check_cols: [customer_id, promo_id]

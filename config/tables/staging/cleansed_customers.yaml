@@ -1,0 +1,25 @@
+# Manifest: staging.cleansed_customers
+source:
+  database: staging
+  table: cleansed_customers
+  cluster: acme-lake
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/staging/cleansed_customers/
+  partition_cols: [load_date]
+
+target:
+  project: acme-analytics
+  dataset: staging
+  table: cleansed_customers
+
+transforms:
+  partition_key_conversion: null  # load_date is native DATE — no conversion
+  map_to_json: []
+  type_widening: []
+
+validation:
+  watermark_col: null
+  null_check_cols: [customer_id]
+
+wave: wave_2_medium
+migration_tier: standard

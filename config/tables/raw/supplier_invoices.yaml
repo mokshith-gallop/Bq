@@ -1,0 +1,32 @@
+# Manifest: raw.supplier_invoices
+source:
+  database: raw
+  table: supplier_invoices
+  cluster: acme-lake
+  format: sequencefile
+  gcs_path: gs://acme-migration-staging-us/raw/supplier_invoices/
+  partition_cols: [feed_year, feed_month]
+  format_options:
+    key_field: invoice_no
+    value_format: serialized_row
+
+target:
+  project: acme-analytics
+  dataset: raw
+  table: supplier_invoices
+
+transforms:
+  partition_key_conversion:
+    source_cols: [feed_year, feed_month]
+    target_col: partition_month
+    parse_fn: DATE
+    generated_column: true  # BQ DDL: partition_month DATE AS (DATE(feed_year, feed_month, 1))
+  map_to_json: []
+  type_widening: []
+
+validation:
+  watermark_col: null
+  null_check_cols: [invoice_no, supplier_id]
+
+wave: wave_1_small
+migration_tier: standard

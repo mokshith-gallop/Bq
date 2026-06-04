@@ -1,0 +1,27 @@
+# Manifest: regional.fact_shipments_eu
+# Source: Hive Parquet managed table on acme-edge cluster
+# Partition: ship_date DATE (native — no conversion)
+source:
+  database: regional
+  table: fact_shipments_eu
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/fact_shipments_eu/
+  partition_cols: [ship_date]
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: fact_shipments_eu
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: sla_hours, from: INT, to: INT64 }
+
+wave: eu
+
+validation:
+  watermark_col: null
+  null_check_cols: [shipment_id, order_id]

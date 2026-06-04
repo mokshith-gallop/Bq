@@ -1,0 +1,32 @@
+# Manifest: retail.acid_supplier_terms_history
+source:
+  database: retail
+  table: acid_supplier_terms_history
+  cluster: acme-analytics
+  format: orc
+  gcs_path: gs://acme-migration-staging-us/retail/acid_supplier_terms_history/
+  partition_cols: []
+  format_options:
+    acid_compaction: true
+    transactional: true
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: acid_supplier_terms_history
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  acid_compaction: true
+  type_widening:
+    - { col: history_id, from: BIGINT, to: INT64 }
+    - { col: supplier_sk, from: BIGINT, to: INT64 }
+    - { col: payment_terms_days, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [history_id, supplier_sk]
+
+wave: wave_3_large
+migration_tier: standard

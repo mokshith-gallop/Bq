@@ -1,0 +1,27 @@
+# Manifest: regional.fact_returns_eu
+# Source: Hive Parquet managed table on acme-edge cluster
+# Partition: return_date DATE (native — no conversion)
+source:
+  database: regional
+  table: fact_returns_eu
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/fact_returns_eu/
+  partition_cols: [return_date]
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: fact_returns_eu
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: return_id, from: BIGINT, to: INT64 }
+
+wave: eu
+
+validation:
+  watermark_col: null
+  null_check_cols: [return_id, order_id]

@@ -1,0 +1,28 @@
+# Manifest: retail.agg_marketing_attribution_cube
+source:
+  database: retail
+  table: agg_marketing_attribution_cube
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/agg_marketing_attribution_cube/
+  partition_cols: [period_date]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: agg_marketing_attribution_cube
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: campaign_sk, from: BIGINT, to: INT64 }
+    - { col: attributed_units, from: BIGINT, to: INT64 }
+    - { col: grouping_id, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [channel]
+
+wave: wave_1_small
+migration_tier: standard

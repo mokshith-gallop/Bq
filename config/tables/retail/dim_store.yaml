@@ -1,0 +1,29 @@
+# Manifest: retail.dim_store
+source:
+  database: retail
+  table: dim_store
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/dim_store/
+  partition_cols: []
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: dim_store
+
+transforms:
+  partition_key_conversion: null
+  map_to_json:
+    - { source_col: attributes, target_col: attributes }
+  type_widening:
+    - { col: store_sk, from: BIGINT, to: INT64 }
+    - { col: sq_ft, from: INT, to: INT64 }
+    - { col: manager_employee_sk, from: BIGINT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [store_sk, store_id]
+
+wave: wave_1_small
+migration_tier: standard

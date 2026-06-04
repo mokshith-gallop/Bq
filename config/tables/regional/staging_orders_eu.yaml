@@ -1,0 +1,27 @@
+# Manifest: regional.staging_orders_eu
+# Source: Hive Parquet managed table on acme-edge cluster (Sqoop CDC landing)
+# Partition: snapshot_date DATE (native — no conversion)
+source:
+  database: regional
+  table: staging_orders_eu
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/staging_orders_eu/
+  partition_cols: [snapshot_date]
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: staging_orders_eu
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: quantity, from: INT, to: INT64 }
+
+wave: eu
+
+validation:
+  watermark_col: null
+  null_check_cols: [order_id]

@@ -1,0 +1,28 @@
+# Manifest: regional.dim_gdpr_consent
+# Source: Hive Parquet managed table on acme-edge cluster
+# GDPR compliance-critical table
+# Partition: consent_date DATE (native — no conversion)
+source:
+  database: regional
+  table: dim_gdpr_consent
+  cluster: acme-edge
+  format: parquet
+  gcs_path: gs://acme-migration-staging-eu/regional/dim_gdpr_consent/
+  partition_cols: [consent_date]
+
+target:
+  project: acme-analytics-eu
+  dataset: regional_eu
+  table: dim_gdpr_consent
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening: []
+
+wave: eu
+migration_tier: critical
+
+validation:
+  watermark_col: null
+  null_check_cols: [consent_id, customer_id, granted]

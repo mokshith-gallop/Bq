@@ -1,0 +1,32 @@
+# Manifest: retail.fact_shipments
+source:
+  database: retail
+  table: fact_shipments
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/fact_shipments/
+  partition_cols: [ship_year, ship_month, ship_day, carrier_partition]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: fact_shipments
+
+transforms:
+  partition_key_conversion:
+    source_cols: [ship_year, ship_month, ship_day]
+    target_col: partition_date
+    parse_fn: DATE
+    generated_column: true  # BQ DDL: partition_date DATE AS (DATE(ship_year, ship_month, ship_day))
+  map_to_json: []
+  type_widening:
+    - { col: customer_sk, from: BIGINT, to: INT64 }
+    - { col: warehouse_sk, from: BIGINT, to: INT64 }
+    - { col: sla_hours, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [shipment_id, invoice_no]
+
+wave: wave_3_large
+migration_tier: critical

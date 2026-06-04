@@ -1,0 +1,28 @@
+# Manifest: retail.agg_weekly_customer_ltv
+source:
+  database: retail
+  table: agg_weekly_customer_ltv
+  cluster: acme-analytics
+  format: parquet
+  gcs_path: gs://acme-migration-staging-us/retail/agg_weekly_customer_ltv/
+  partition_cols: [week_start_date]
+
+target:
+  project: acme-analytics
+  dataset: retail
+  table: agg_weekly_customer_ltv
+
+transforms:
+  partition_key_conversion: null
+  map_to_json: []
+  type_widening:
+    - { col: customer_sk, from: BIGINT, to: INT64 }
+    - { col: orders_to_date, from: INT, to: INT64 }
+    - { col: days_since_last_order, from: INT, to: INT64 }
+
+validation:
+  watermark_col: null
+  null_check_cols: [customer_sk]
+
+wave: wave_1_small
+migration_tier: standard
