@@ -1,0 +1,43 @@
+-- BigQuery DDL for creating/managing BigQuery Remote Connections in US and EU.
+-- This file documents and establishes the remote connections used by BigQuery Remote UDFs.
+-- Since the remote connections themselves cannot be created via standard DDL inside the query editor,
+-- we use the gcloud CLI or bq command line to create them, then grant IAM invoker permissions.
+--
+-- This script contains the documented DDL/SQL and setup commands for both US and EU projects.
+
+-- =============================================================================
+-- 1. US CONNECTION (Project: acme-analytics, Location: US)
+-- =============================================================================
+-- Connection ID: `acme-analytics.us.remote-udfs`
+-- Service Account associated with connection (created automatically):
+--   `bqcx-1234567890-us@gcp-sa-bigquery-condel.iam.gserviceaccount.com`
+-- Setup command:
+--   gcloud transfer connections create --connection-type=CLOUD_RESOURCE \
+--     --location=us --project-id=acme-analytics remote-udfs
+--
+-- IAM policy grant:
+--   gcloud functions add-iam-policy-binding geoip_city \
+--     --region=us-central1 --member='serviceAccount:bqcx-1234567890-us@gcp-sa-bigquery-condel.iam.gserviceaccount.com' \
+--     --role='roles/cloudfunctions.invoker'
+--   gcloud functions add-iam-policy-binding lookup_supplier_terms \
+--     --region=us-central1 --member='serviceAccount:bqcx-1234567890-us@gcp-sa-bigquery-condel.iam.gserviceaccount.com' \
+--     --role='roles/cloudfunctions.invoker'
+
+
+-- =============================================================================
+-- 2. EU CONNECTION (Project: acme-analytics-eu, Location: EU)
+-- =============================================================================
+-- Connection ID: `acme-analytics-eu.eu.remote-udfs`
+-- Service Account associated with connection (created automatically):
+--   `bqcx-0987654321-eu@gcp-sa-bigquery-condel.iam.gserviceaccount.com`
+-- Setup command:
+--   gcloud transfer connections create --connection-type=CLOUD_RESOURCE \
+--     --location=eu --project-id=acme-analytics-eu remote-udfs
+--
+-- IAM policy grant:
+--   gcloud functions add-iam-policy-binding geoip_city \
+--     --region=europe-west3 --member='serviceAccount:bqcx-0987654321-eu@gcp-sa-bigquery-condel.iam.gserviceaccount.com' \
+--     --role='roles/cloudfunctions.invoker'
+--   gcloud functions add-iam-policy-binding lookup_supplier_terms \
+--     --region=europe-west3 --member='serviceAccount:bqcx-0987654321-eu@gcp-sa-bigquery-condel.iam.gserviceaccount.com' \
+--     --role='roles/cloudfunctions.invoker'
