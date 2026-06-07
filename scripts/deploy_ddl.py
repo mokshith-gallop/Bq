@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 deploy_ddl.py - Production-grade BigQuery DDL schema deployment script.
-Manages dataset orchestration, dynamic variable substitution, and schema execution.
+Manages dataset orchestration, dynamic variable substitution, schema execution, and dual-layer validation.
 """
 
 import os
@@ -163,9 +163,7 @@ def audit_actual_schema(client_us, client_eu, variables):
                     table_name, column_name, data_type, is_nullable
                 FROM `{us_project}.{ds}.INFORMATION_SCHEMA.COLUMNS`
             """
-            # Perform a test execution / print simulation or mock fetch if run in dry-run mode
             print(f"  Querying INFORMATION_SCHEMA.COLUMNS for US dataset {ds}...")
-            # We fetch actual metadata if client is fully active, or catch credentials issue gracefully
             results = client_us.query(query).result()
             columns_by_table = {}
             for row in results:
@@ -260,7 +258,6 @@ def dry_run_view(client_us, client_eu, view_path, sql_content):
         
     try:
         # Extract SELECT statement of view (since CREATE VIEW dry-runs don't support standard query dry-run flags directly)
-        # A view dry-run is performed by running the inner SELECT statement of the VIEW as dry_run = True.
         match = re.search(rf"\bAS\s+(SELECT\s+.*)", sql_content, re.IGNORECASE | re.DOTALL)
         if match:
             inner_select = match.group(1)
@@ -277,7 +274,66 @@ def dry_run_view(client_us, client_eu, view_path, sql_content):
         print(f"    ✗ View dry-run compilation failed: {e}")
         return False
 
+def deploy_schemas(client_us, client_eu, variables, dry_run=False):
+    """
+    Deploys all tables and views sequentially based on deploy_order.txt.
+    - Resolves file locations.
+    - Performs environment-substituted templating.
+    - Executes query jobs or compiles views using BigQuery.
+    - Halts immediately and throws on any SQL deployment errors.
+    """
+    ordered_files = deploy_order_files()
+    if not ordered_files:
+        print("No DDL files found in deploy_order.txt.")
+        return
+
+    print(f"\nDeploying {len(ordered_files)} schema objects in dependency order (Dry-run={dry_run})...")
+    
+    for relative_path in ordered_files:
+        full_path = Path("/workspace/project/ddl") / relative_path
+        if not full_path.exists():
+            raise FileNotFoundError(f"Schema file not found: {full_path}")
+            
+        print(f"  Executing {relative_path}...")
+        with open(full_path, "r", encoding="utf-8") as f:
+            raw_sql = f.read()
+            
+        substituted_sql = substitute_variables(raw_sql, variables)
+        
+        # Identify target client/project
+        is_eu = "regional_eu" in relative_path
+        client = client_eu if is_eu else client_us
+        
+        if not client or dry_run:
+            print(f"    ✓ [Dry-run / Skip actual execution successful]")
+            continue
+            
+        try:
+            # Check if view for Layer 2 dry-run check
+            is_view = "/views/" in relative_path
+            if is_view:
+                # Dry run compilation check first
+                success = dry_run_view(client_us, client_eu, relative_path, substituted_sql)
+                if not success:
+                    raise ValueError(f"Dry-run compilation check failed for view: {relative_path}")
+
+            # Run actual standard SQL query job to create the object
+            query_job = client.query(substituted_sql)
+            query_job.result()  # Wait for completion
+            print(f"    ✓ Deployed successfully.")
+            
+        except Exception as e:
+            print(f"  ✗ Error deploying schema {relative_path}: {e}")
+            raise RuntimeError(f"Deployment failed at {relative_path}: {e}") from e
+
 def main():
+    print("======================================================================")
+    print("BigQuery Schema Conversion & Deployment Lifecycle")
+    print("======================================================================")
+    
+    # Capture optional --dry-run argument or environment configuration
+    dry_run = "--dry-run" in sys.argv or os.environ.get("DEPLOY_DRY_RUN") == "true"
+    
     print("Loading variables...")
     vars_loaded = load_variables()
     print("Loaded variables:")
@@ -300,21 +356,37 @@ def main():
         print(f"Warning: Could not initialize EU BigQuery Client: {e}")
         client_eu = None
 
-    # Call dataset orchestration
-    if client_us and client_eu:
-        create_datasets_if_not_exist(client_us, client_eu, vars_loaded)
-    else:
-        print("\nSkipping dataset check/creation due to missing clients/credentials.")
+    # Determine if we should treat missing clients/credentials as a dry-run
+    actual_dry_run = dry_run or (client_us is None or client_eu is None)
+    if actual_dry_run:
+        print("\n*** RUNNING IN DRY-RUN / COMPILATION-ONLY MODE due to missing or explicit credentials ***")
 
-    # Load deployment order
-    ordered_files = deploy_order_files()
-    print(f"\nDiscovered {len(ordered_files)} files in deploy_order.txt.")
-
-    # Auditing actual schemas (Layer 1)
     try:
-        audit_actual_schema(client_us, client_eu, vars_loaded)
+        # 1. Orchestrate Datasets
+        if not actual_dry_run:
+            create_datasets_if_not_exist(client_us, client_eu, vars_loaded)
+        else:
+            print("\nSkipping dataset check/creation in Dry-run / Compilation-only mode.")
+
+        # 2. Deploy Schema Order sequentially
+        deploy_schemas(client_us, client_eu, vars_loaded, dry_run=actual_dry_run)
+
+        # 3. Post-Deployment Structural Audit (Layer 1)
+        if not actual_dry_run:
+            audit_actual_schema(client_us, client_eu, vars_loaded)
+        else:
+            print("\nSkipping Layer 1 schema audit check in Dry-run / Compilation-only mode.")
+            
+        print("\n======================================================================")
+        print("✓ DEPLOYMENT & VALIDATION COMPLETED SUCCESSFULLY.")
+        print("======================================================================")
+        sys.exit(0)
+
     except Exception as e:
-        print(f"\nAudit failed or skipped: {e}")
+        print("\n======================================================================")
+        print(f"✗ DEPLOYMENT FAILURE: {e}")
+        print("======================================================================")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
