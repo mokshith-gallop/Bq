@@ -1,0 +1,1 @@
+# No external requirements needed for geoip_city since ipaddress is in standard library
