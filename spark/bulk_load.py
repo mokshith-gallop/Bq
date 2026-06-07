@@ -93,6 +93,7 @@ def load_manifest(path: str, spark: Optional[SparkSession] = None) -> Dict[str, 
 
     manifest: Dict[str, Any] = yaml.safe_load(content)
     _validate_manifest(manifest, path)
+    manifest["_manifest_path"] = path
     return manifest
 
 
